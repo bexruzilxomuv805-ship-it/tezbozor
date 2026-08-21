@@ -36,6 +36,16 @@ If the assigned `<name>.vercel.app` domain is already taken by someone else's pr
 Vercel appends a suffix (`-one`, etc.) automatically — add a custom `vercel.app` subdomain
 under Project Settings → Domains if you want a specific name instead.
 
+## PWA
+
+`vite-plugin-pwa` (configured in `vite.config.js`) generates the manifest and service worker
+at build time, so the site is installable to a phone's home screen and its app shell still
+loads offline. `public/icon-192.png`, `icon-512.png`, and `apple-touch-icon.png` are the T/B
+mark from `logo-icon.png` re-composited on a solid `--gc-cream` background — the original is
+transparent, which iOS renders as solid black behind a home-screen icon. Regenerate them with
+`sharp` (`npm install --no-save sharp`) if the logo changes: trim the transparent padding,
+composite centered on `#fbf8f1` at ~62% of the canvas size for maskable-safe padding.
+
 ## React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
