@@ -1,0 +1,314 @@
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ShoppingCart, Trash2, LocateFixed, Loader2, Gift, MapPin, X } from "lucide-react";
+import { useApp } from "../context/AppContext";
+import { CAT_STYLE, CAT_ICON } from "../data/categories";
+import { formatMoney } from "../utils/units";
+import { POINT_VALUE, discountForPoints } from "../utils/loyalty";
+import Stepper from "../components/Stepper";
+
+export default function Cart() {
+  const {
+    cart, lang, t, products, updateCartQty, removeFromCart, cartTotal, cartCount, checkout, checkoutInProgress,
+    currentUser, showToast, loyaltyPoints, savedAddresses, addSavedAddress, deleteSavedAddress,
+  } = useApp();
+  const navigate = useNavigate();
+  const [fullName, setFullName] = useState("");
+  const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState("");
+  const [locating, setLocating] = useState(false);
+  const [pointsToUse, setPointsToUse] = useState(0);
+  const [saveThisAddress, setSaveThisAddress] = useState(false);
+  const [selectedSavedId, setSelectedSavedId] = useState(null);
+  const adjustedRef = useRef(new Set());
+
+  const selectSavedAddress = (a) => {
+    setFullName(a.fullName);
+    setPhone(a.phone);
+    setAddress(a.address);
+    setSelectedSavedId(a.id);
+  };
+
+  const maxUsablePoints = Math.max(0, Math.min(loyaltyPoints, Math.floor(cartTotal / POINT_VALUE)));
+  const safePointsToUse = Math.min(pointsToUse, maxUsablePoints);
+  const pointsDiscount = discountForPoints(safePointsToUse);
+  const finalTotal = Math.max(0, cartTotal - pointsDiscount);
+
+  // Auto-check on every visit: clamp/remove cart lines that now exceed available stock
+  // (e.g. admin reduced stock after the item was added to the cart).
+  useEffect(() => {
+    for (const item of cart) {
+      const product = products.find((p) => p.id === item.productId);
+      const maxQty = product ? Math.floor(product.stock / (item.factor || 1)) : 0;
+      if (item.qty <= maxQty) continue;
+      if (adjustedRef.current.has(item.key)) continue;
+      adjustedRef.current.add(item.key);
+      if (maxQty <= 0) {
+        removeFromCart(item.key);
+        showToast(t.cartAdjustedRemoved(item.name), "error");
+      } else {
+        updateCartQty(item.key, maxQty);
+        showToast(t.cartAdjustedReduced(item.name, maxQty), "info");
+      }
+    }
+  }, [cart, products, removeFromCart, updateCartQty, showToast, t]);
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      showToast(t.locationUnsupported, "error");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
+          const data = await res.json();
+          setAddress(data.display_name || `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
+          showToast(t.locationDetected, "info");
+        } catch (e) {
+          showToast(t.locationFailed, "error");
+        } finally {
+          setLocating(false);
+        }
+      },
+      () => {
+        showToast(t.locationFailed, "error");
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  const handleCheckout = () => {
+    if (!currentUser) {
+      showToast(t.guestCheckoutBlocked, "error");
+      navigate('/login');
+      return;
+    }
+    if (!fullName.trim() || !address.trim() || !phone.trim()) {
+      showToast(t.deliveryInfoRequired, "error");
+      return;
+    }
+
+    if (saveThisAddress) {
+      addSavedAddress({ fullName: fullName.trim(), phone: phone.trim(), address: address.trim() });
+    }
+
+    (async () => {
+      const id = await checkout({ fullName: fullName.trim(), address: address.trim(), phone: phone.trim(), pointsToUse: safePointsToUse });
+      if (id) navigate(`/buyurtma-qabul-qilindi/${id}`);
+    })();
+  };
+
+  if (cart.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center text-center py-24 px-6">
+        <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: "var(--gc-cream-2)" }}>
+          <ShoppingCart size={26} color="#8A8271" />
+        </div>
+        <p className="font-display text-lg font-semibold" style={{ color: "var(--gc-charcoal)" }}>{t.cartEmptyTitle}</p>
+        <p className="text-sm mt-1 mb-5" style={{ color: "#8A8271" }}>{t.cartEmptyBody}</p>
+        <Link
+          to="/dokon"
+          className="px-5 py-2.5 rounded-full text-sm font-bold text-white"
+          style={{ background: "var(--gc-leaf)" }}
+        >
+          {t.goShopping}
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-6">
+      <h1 className="font-display text-2xl font-semibold mb-4" style={{ color: "var(--gc-charcoal)" }}>
+        {t.cart} <span style={{ color: "#8A8271", fontSize: 15 }}>· {t.itemsCount(cartCount)}</span>
+      </h1>
+
+      <div className="flex flex-col gap-2.5 mb-5">
+        {cart.map((item) => {
+          const style = CAT_STYLE[item.category] || CAT_STYLE.sabzavot;
+          const Icon = CAT_ICON[item.category] || CAT_ICON.sabzavot;
+          const product = products.find((p) => p.id === item.productId);
+          const maxQty = product ? Math.floor(product.stock / (item.factor || 1)) : item.qty;
+          return (
+            <div
+              key={item.key}
+              className="flex items-center gap-3 p-3 rounded-2xl bg-white"
+              style={{ border: "1px solid var(--gc-border)" }}
+            >
+              <div className="w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center shrink-0" style={{ background: style.bg }}>
+                {product?.image ? (
+                  <img src={product.image} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <Icon size={20} color={style.fg} strokeWidth={1.6} />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold truncate" style={{ color: "var(--gc-charcoal)" }}>{item.name}</p>
+                <p className="text-xs" style={{ color: "#8A8271" }}>
+                  {item.optionLabel} · {formatMoney(item.unitPrice, lang, t)}
+                </p>
+              </div>
+              <Stepper
+                value={item.qty}
+                min={0}
+                max={Math.max(1, maxQty)}
+                onChange={(v) => (v <= 0 ? removeFromCart(item.key) : updateCartQty(item.key, v))}
+              />
+              <button
+                onClick={() => removeFromCart(item.key)}
+                aria-label={t.remove}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 transition shrink-0"
+              >
+                <Trash2 size={15} color="var(--gc-tomato-dark)" />
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      {savedAddresses.length > 0 && (
+        <div className="mb-4">
+          <p className="text-xs font-bold mb-2" style={{ color: "#8A8271" }}>{t.savedAddresses}</p>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {savedAddresses.map((a) => {
+              const active = selectedSavedId === a.id;
+              return (
+                <button
+                  key={a.id}
+                  type="button"
+                  onClick={() => selectSavedAddress(a)}
+                  className="relative shrink-0 w-52 text-left rounded-xl p-3 pr-7 transition"
+                  style={{
+                    background: active ? "var(--gc-cream-2)" : "#fff",
+                    border: `1.5px solid ${active ? "var(--gc-forest)" : "var(--gc-border)"}`,
+                  }}
+                >
+                  <p className="text-xs font-bold truncate" style={{ color: "var(--gc-charcoal)" }}>{a.fullName}</p>
+                  <p className="text-[11px] truncate" style={{ color: "#8A8271" }}>{a.phone}</p>
+                  <p className="flex items-start gap-1 text-[11px] mt-0.5 line-clamp-2" style={{ color: "#6B6455" }}>
+                    <MapPin size={11} className="shrink-0 mt-0.5" /> {a.address}
+                  </p>
+                  <span
+                    role="button"
+                    tabIndex={-1}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteSavedAddress(a.id);
+                      if (selectedSavedId === a.id) setSelectedSavedId(null);
+                    }}
+                    aria-label={t.remove}
+                    className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full hover:bg-black/5 transition"
+                  >
+                    <X size={12} color="#8A8271" />
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className="rounded-2xl p-4 mb-4 bg-white flex flex-col gap-2.5" style={{ border: "1px solid var(--gc-border)" }}>
+        <p className="text-sm font-bold" style={{ color: "var(--gc-charcoal)" }}>{t.deliveryInfo}</p>
+        <input
+          value={fullName}
+          onChange={(e) => { setFullName(e.target.value); setSelectedSavedId(null); }}
+          placeholder={t.fullName}
+          className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none"
+          style={{ background: "var(--gc-cream-2)", border: "1px solid var(--gc-border)" }}
+        />
+        <input
+          type="tel"
+          value={phone}
+          onChange={(e) => { setPhone(e.target.value); setSelectedSavedId(null); }}
+          placeholder={t.phone}
+          className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none"
+          style={{ background: "var(--gc-cream-2)", border: "1px solid var(--gc-border)" }}
+        />
+        <div className="flex gap-2">
+          <input
+            value={address}
+            onChange={(e) => { setAddress(e.target.value); setSelectedSavedId(null); }}
+            placeholder={t.address}
+            className="flex-1 min-w-0 px-3.5 py-2.5 rounded-xl text-sm outline-none"
+            style={{ background: "var(--gc-cream-2)", border: "1px solid var(--gc-border)" }}
+          />
+          <button
+            type="button"
+            onClick={detectLocation}
+            disabled={locating}
+            aria-label={t.detectLocation}
+            title={t.detectLocation}
+            className="shrink-0 flex items-center justify-center w-11 h-11 rounded-xl transition"
+            style={{ background: "var(--gc-leaf)", opacity: locating ? 0.6 : 1 }}
+          >
+            <LocateFixed size={18} color="#fff" className={locating ? "animate-pulse" : ""} />
+          </button>
+        </div>
+        <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer" style={{ color: "#6B6455" }}>
+          <input
+            type="checkbox"
+            checked={saveThisAddress}
+            onChange={(e) => setSaveThisAddress(e.target.checked)}
+            className="h-4 w-4 rounded"
+            style={{ accentColor: "var(--gc-forest)" }}
+          />
+          {t.saveThisAddress}
+        </label>
+      </div>
+
+      {currentUser && maxUsablePoints > 0 && (
+        <div className="rounded-2xl p-4 mb-4 bg-white flex flex-col gap-2.5" style={{ border: "1px solid var(--gc-border)" }}>
+          <div className="flex items-center justify-between gap-2">
+            <p className="flex items-center gap-1.5 text-sm font-bold" style={{ color: "var(--gc-charcoal)" }}>
+              <Gift size={15} color="var(--gc-mango-dark)" /> {t.loyaltyPoints}
+            </p>
+            <span className="text-xs font-semibold" style={{ color: "#8A8271" }}>{t.pointsAvailable(loyaltyPoints)}</span>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <input
+              type="range"
+              min={0}
+              max={maxUsablePoints}
+              value={safePointsToUse}
+              onChange={(e) => setPointsToUse(Number(e.target.value))}
+              className="flex-1"
+            />
+            <span className="w-14 shrink-0 text-right text-sm font-bold" style={{ color: "var(--gc-charcoal)" }}>{safePointsToUse}</span>
+          </div>
+          <p className="text-[11px]" style={{ color: "#8A8271" }}>{t.maxPointsHint(maxUsablePoints)}</p>
+        </div>
+      )}
+
+      <div className="rounded-2xl p-4" style={{ background: "var(--gc-cream-2)" }}>
+        <div className="flex justify-between text-sm mb-1.5" style={{ color: "#6B6455" }}>
+          <span>{t.subtotal}</span>
+          <span>{formatMoney(cartTotal, lang, t)}</span>
+        </div>
+        {pointsDiscount > 0 && (
+          <div className="flex justify-between text-sm mb-1.5" style={{ color: "var(--gc-leaf)" }}>
+            <span>{t.pointsDiscount}</span>
+            <span>-{formatMoney(pointsDiscount, lang, t)}</span>
+          </div>
+        )}
+        <div className="flex justify-between text-lg font-bold mb-4" style={{ color: "var(--gc-charcoal)" }}>
+          <span>{t.total}</span>
+          <span>{formatMoney(finalTotal, lang, t)}</span>
+        </div>
+        <button
+          onClick={handleCheckout}
+          disabled={checkoutInProgress}
+          className="w-full py-3 rounded-full text-sm font-bold text-white flex items-center justify-center gap-2"
+          style={{ background: "var(--gc-forest)", opacity: checkoutInProgress ? 0.7 : 1 }}
+        >
+          {checkoutInProgress && <Loader2 size={16} className="animate-spin" />}
+          {t.checkout}
+        </button>
+      </div>
+    </div>
+  );
+}

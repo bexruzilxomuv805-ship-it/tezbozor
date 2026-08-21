@@ -1,0 +1,579 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "name": "pro",
+      "email": "pro@gmail.com",
+      "password": "pro1",
+      "role": "user"
+    },
+    {
+      "name": "BEXRUZ_ADMIN",
+      "email": "bexruz_admin@gmail.com",
+      "password": "ilxomov1",
+      "role": "admin",
+      "id": "ADMIN"
+    },
+    {
+      "name": "NOOB",
+      "email": "noob@gmail.com",
+      "password": "noob1",
+      "role": "user",
+      "id": "2"
+    }
+  ],
+  "products": [
+    {
+      "id": "1",
+      "name": {
+        "uz": "Pomidor",
+        "ru": "помидор",
+        "en": "Tomato"
+      },
+      "category": "sabzavot",
+      "baseUnit": "kg",
+      "price": 11999,
+      "stock": 39,
+      "brand": "Fermer bozori",
+      "image": "/uploads/pomidor.jpg"
+    },
+    {
+      "id": "2",
+      "name": {
+        "uz": "Bodring",
+        "ru": "Огурец",
+        "en": "Cucumber"
+      },
+      "category": "sabzavot",
+      "baseUnit": "kg",
+      "price": 8999,
+      "stock": 4,
+      "brand": "Fermer bozori",
+      "image": "/uploads/bodring.jpg"
+    },
+    {
+      "id": "3",
+      "name": {
+        "uz": "Kartoshka",
+        "ru": "Картофель",
+        "en": "Potato"
+      },
+      "category": "sabzavot",
+      "baseUnit": "kg",
+      "price": 5999,
+      "stock": 106,
+      "brand": "Andijon dehqon",
+      "image": "/uploads/kartoshka.jpg"
+    },
+    {
+      "id": "4",
+      "name": {
+        "uz": "Piyoz",
+        "ru": "Лук",
+        "en": "Onion"
+      },
+      "category": "sabzavot",
+      "baseUnit": "kg",
+      "price": 4999,
+      "stock": 38,
+      "brand": "Andijon dehqon",
+      "image": "/uploads/piyoz.jpg"
+    },
+    {
+      "id": "5",
+      "name": {
+        "uz": "Sabzi",
+        "ru": "Морковь",
+        "en": "Carrot"
+      },
+      "category": "sabzavot",
+      "baseUnit": "kg",
+      "price": 6499,
+      "stock": 30,
+      "brand": "Fermer bozori",
+      "image": "/uploads/sabzi.jpg"
+    },
+    {
+      "id": "6",
+      "name": {
+        "uz": "Olma",
+        "ru": "Яблоко",
+        "en": "Apple"
+      },
+      "category": "meva",
+      "baseUnit": "kg",
+      "price": 14999,
+      "stock": 53.5,
+      "brand": "Bog'dor",
+      "image": "/uploads/olma.jpg"
+    },
+    {
+      "id": "7",
+      "name": {
+        "uz": "Banan",
+        "ru": "Банан",
+        "en": "Banana"
+      },
+      "category": "meva",
+      "baseUnit": "kg",
+      "price": 21999,
+      "stock": 6,
+      "brand": "Import Fresh",
+      "image": "/uploads/banan.jpg"
+    },
+    {
+      "id": "8",
+      "name": {
+        "uz": "Uzum",
+        "ru": "Виноград",
+        "en": "Grape"
+      },
+      "category": "meva",
+      "baseUnit": "kg",
+      "price": 27999,
+      "stock": 18.75,
+      "brand": "Bog'dor",
+      "image": "/uploads/uzum.jpg"
+    },
+    {
+      "id": "9",
+      "name": {
+        "uz": "Anor",
+        "ru": "Гранат",
+        "en": "Pomegranate"
+      },
+      "category": "meva",
+      "baseUnit": "kg",
+      "price": 24999,
+      "stock": 48.75,
+      "brand": "Bog'dor",
+      "image": "/uploads/anor.jpg"
+    },
+    {
+      "id": "10",
+      "name": {
+        "uz": "Sut",
+        "ru": "Молоко",
+        "en": "Milk"
+      },
+      "category": "sut",
+      "baseUnit": "l",
+      "price": 11999,
+      "stock": 6,
+      "brand": "Andijon Sut",
+      "image": "/uploads/sut.jpg"
+    },
+    {
+      "id": "11",
+      "name": {
+        "uz": "Tvorog",
+        "ru": "Творог",
+        "en": "Cottage cheese"
+      },
+      "category": "sut",
+      "baseUnit": "kg",
+      "price": 34999,
+      "stock": 18,
+      "brand": "Andijon Sut",
+      "image": "/uploads/tvorog.jpg"
+    },
+    {
+      "id": "12",
+      "name": {
+        "uz": "Qatiq",
+        "ru": "Катык",
+        "en": "Yogurt"
+      },
+      "category": "sut",
+      "baseUnit": "dona",
+      "price": 7999,
+      "stock": 51,
+      "brand": "Andijon Sut",
+      "image": "/uploads/qatiq.jpg"
+    },
+    {
+      "id": "13",
+      "name": {
+        "uz": "Sariyog'",
+        "ru": "Сливочное масло",
+        "en": "Butter"
+      },
+      "category": "sut",
+      "baseUnit": "kg",
+      "price": 44999,
+      "stock": 14.5,
+      "brand": "Prezident",
+      "image": "/uploads/sariyog.jpg"
+    },
+    {
+      "id": "14",
+      "name": {
+        "uz": "Non",
+        "ru": "Лепёшка",
+        "en": "Flatbread"
+      },
+      "category": "non",
+      "baseUnit": "dona",
+      "price": 3999,
+      "stock": 88,
+      "brand": "Non Savdo",
+      "image": "/uploads/non.jpg"
+    },
+    {
+      "id": "15",
+      "name": {
+        "uz": "Baget",
+        "ru": "Багет",
+        "en": "Baguette"
+      },
+      "category": "non",
+      "baseUnit": "dona",
+      "price": 8999,
+      "stock": 18,
+      "brand": "Non Savdo",
+      "image": "/uploads/baget.jpg"
+    },
+    {
+      "id": "16",
+      "name": {
+        "uz": "Bulochka",
+        "ru": "Булочка",
+        "en": "Bun"
+      },
+      "category": "non",
+      "baseUnit": "dona",
+      "price": 2999,
+      "stock": 17,
+      "brand": "Shirin Non",
+      "image": "/uploads/bulochka.jpg"
+    },
+    {
+      "id": "4SBZWt5e_uc",
+      "name": {
+        "uz": "Qovun",
+        "ru": "Дыня",
+        "en": "Melon"
+      },
+      "category": "meva",
+      "baseUnit": "dona",
+      "price": 23999,
+      "stock": 15,
+      "brand": "",
+      "image": "/uploads/qovun.jpg"
+    },
+    {
+      "id": "aANbZI9o23w",
+      "name": {
+        "uz": "Tarvuz",
+        "ru": "Арбуз",
+        "en": "Watermelon"
+      },
+      "category": "meva",
+      "baseUnit": "dona",
+      "price": 34999,
+      "stock": 4,
+      "brand": "",
+      "image": "/uploads/tarvuz.jpg"
+    },
+    {
+      "id": "ab88loE7luo",
+      "name": {
+        "uz": "Ananas",
+        "ru": "Ананас",
+        "en": "Pineapple"
+      },
+      "category": "meva",
+      "baseUnit": "kg",
+      "price": 37890,
+      "stock": 28,
+      "brand": "",
+      "image": "http://localhost:4102/uploads/ananas.jpg"
+    },
+    {
+      "id": "nbqGKPJ9-OE",
+      "name": {
+        "uz": "Nok",
+        "ru": "Груша",
+        "en": "Pear"
+      },
+      "category": "meva",
+      "baseUnit": "kg",
+      "price": 24890,
+      "stock": 27,
+      "brand": "",
+      "image": "http://localhost:4102/uploads/nok-jpg.jpg"
+    }
+  ],
+  "orders": [
+    {
+      "id": "99bAD2dzji8",
+      "items": [
+        {
+          "key": "6-0",
+          "productId": "6",
+          "name": "Olma",
+          "category": "meva",
+          "optionLabel": "1kg",
+          "unitPrice": 14999,
+          "qty": 2,
+          "factor": 1
+        }
+      ],
+      "total": 29998,
+      "date": "2026-08-19T16:52:40.330Z",
+      "status": "delivered",
+      "customerName": "pro",
+      "customerEmail": "pro@gmail.com",
+      "address": "17, Qoratosh daxasi, Qoratosh, Shaykhantahur District, Toshkent, 100000, Oʻzbekiston",
+      "phone": "+998958341545"
+    },
+    {
+      "id": "UdjeKgCwQdg",
+      "items": [
+        {
+          "key": "aANbZI9o23w-0",
+          "productId": "aANbZI9o23w",
+          "name": "Tarvuz",
+          "category": "meva",
+          "optionLabel": "1 dona",
+          "unitPrice": 34999,
+          "qty": 2,
+          "factor": 1
+        }
+      ],
+      "total": 69998,
+      "date": "2026-08-19T21:04:12.033Z",
+      "status": "delivered",
+      "customerName": "BEXRUZ",
+      "customerEmail": "pro@gmail.com",
+      "address": "Qoratosh ko'chasi, Qoratosh, Shaykhantahur District, Toshkent, 100000, Oʻzbekiston",
+      "phone": "958341545"
+    },
+    {
+      "id": "5YPfmGddV3k",
+      "items": [
+        {
+          "key": "aANbZI9o23w-0",
+          "productId": "aANbZI9o23w",
+          "name": "Tarvuz",
+          "category": "meva",
+          "optionLabel": "1 dona",
+          "unitPrice": 34999,
+          "qty": 1,
+          "factor": 1
+        },
+        {
+          "key": "4SBZWt5e_uc-0",
+          "productId": "4SBZWt5e_uc",
+          "name": "Qovun",
+          "category": "meva",
+          "optionLabel": "1 dona",
+          "unitPrice": 23999,
+          "qty": 2,
+          "factor": 1
+        },
+        {
+          "key": "14-0",
+          "productId": "14",
+          "name": "Non",
+          "category": "non",
+          "optionLabel": "1 dona",
+          "unitPrice": 3999,
+          "qty": 2,
+          "factor": 1
+        },
+        {
+          "key": "7-0",
+          "productId": "7",
+          "name": "Banan",
+          "category": "meva",
+          "optionLabel": "1kg",
+          "unitPrice": 21999,
+          "qty": 2,
+          "factor": 1
+        },
+        {
+          "key": "6-1",
+          "productId": "6",
+          "name": "Olma",
+          "category": "meva",
+          "optionLabel": "500g",
+          "unitPrice": 7499.5,
+          "qty": 1,
+          "factor": 0.5
+        },
+        {
+          "key": "9-1",
+          "productId": "9",
+          "name": "Anor",
+          "category": "meva",
+          "optionLabel": "500g",
+          "unitPrice": 12499.5,
+          "qty": 1,
+          "factor": 0.5
+        },
+        {
+          "key": "8-2",
+          "productId": "8",
+          "name": "Uzum",
+          "category": "meva",
+          "optionLabel": "250g",
+          "unitPrice": 6999.75,
+          "qty": 1,
+          "factor": 0.25
+        }
+      ],
+      "total": 161991.75,
+      "date": "2026-08-19T21:26:28.087Z",
+      "status": "delivered",
+      "customerName": "NOOB",
+      "customerEmail": "noob@gmail.com",
+      "address": "Qoratosh ko'chasi, Qoratosh, Shaykhantahur District, Toshkent, 100000, Oʻzbekiston",
+      "phone": "994861544",
+      "subtotal": 161991.75
+    },
+    {
+      "id": "sVV-e9LVhUE",
+      "items": [
+        {
+          "key": "7-1",
+          "productId": "7",
+          "name": "Banan",
+          "category": "meva",
+          "optionLabel": "500g",
+          "unitPrice": 10999.5,
+          "qty": 2,
+          "factor": 0.5
+        },
+        {
+          "key": "10-1",
+          "productId": "10",
+          "name": "Sut",
+          "category": "sut",
+          "optionLabel": "0.5litr",
+          "unitPrice": 5999.5,
+          "qty": 1,
+          "factor": 0.5
+        },
+        {
+          "key": "8-1",
+          "productId": "8",
+          "name": "Uzum",
+          "category": "meva",
+          "optionLabel": "500g",
+          "unitPrice": 13999.5,
+          "qty": 1,
+          "factor": 0.5
+        },
+        {
+          "key": "9-2",
+          "productId": "9",
+          "name": "Anor",
+          "category": "meva",
+          "optionLabel": "250g",
+          "unitPrice": 6249.75,
+          "qty": 1,
+          "factor": 0.25
+        },
+        {
+          "key": "6-0",
+          "productId": "6",
+          "name": "Olma",
+          "category": "meva",
+          "optionLabel": "1kg",
+          "unitPrice": 14999,
+          "qty": 2,
+          "factor": 1
+        },
+        {
+          "key": "13-1",
+          "productId": "13",
+          "name": "Sariyog'",
+          "category": "sut",
+          "optionLabel": "500g",
+          "unitPrice": 22499.5,
+          "qty": 1,
+          "factor": 0.5
+        },
+        {
+          "key": "15-0",
+          "productId": "15",
+          "name": "Baget",
+          "category": "non",
+          "optionLabel": "1 dona",
+          "unitPrice": 8999,
+          "qty": 2,
+          "factor": 1
+        },
+        {
+          "key": "aANbZI9o23w-0",
+          "productId": "aANbZI9o23w",
+          "name": "Tarvuz",
+          "category": "meva",
+          "optionLabel": "1 dona",
+          "unitPrice": 34999,
+          "qty": 1,
+          "factor": 1
+        },
+        {
+          "key": "4SBZWt5e_uc-0",
+          "productId": "4SBZWt5e_uc",
+          "name": "Qovun",
+          "category": "meva",
+          "optionLabel": "1 dona",
+          "unitPrice": 23999,
+          "qty": 1,
+          "factor": 1
+        }
+      ],
+      "subtotal": 177741.25,
+      "pointsUsed": 3,
+      "pointsDiscount": 150,
+      "pointsEarned": 17,
+      "total": 177591.25,
+      "date": "2026-08-20T23:57:37.245Z",
+      "status": "delivered",
+      "customerName": "pro",
+      "customerEmail": "pro@gmail.com",
+      "address": "Samarqand Darvoza ko'chasi, Qoratosh, Shaykhantahur District, Toshkent, 100000, Oʻzbekiston",
+      "phone": "958341545"
+    },
+    {
+      "id": "oKe2VZj4nHc",
+      "items": [
+        {
+          "key": "4SBZWt5e_uc-1",
+          "productId": "4SBZWt5e_uc",
+          "name": "Qovun",
+          "category": "meva",
+          "optionLabel": "5 dona",
+          "unitPrice": 119995,
+          "qty": 1,
+          "factor": 5
+        },
+        {
+          "key": "aANbZI9o23w-2",
+          "productId": "aANbZI9o23w",
+          "name": "Tarvuz",
+          "category": "meva",
+          "optionLabel": "10 dona",
+          "unitPrice": 349990,
+          "qty": 1,
+          "factor": 10
+        }
+      ],
+      "subtotal": 469985,
+      "pointsUsed": 2,
+      "pointsDiscount": 100,
+      "pointsEarned": 46,
+      "total": 469885,
+      "date": "2026-08-21T18:22:02.312Z",
+      "status": "delivered",
+      "customerName": "pro",
+      "customerEmail": "pro@gmail.com",
+      "address": "Samarqand Darvoza ko'chasi, Qoratosh, Shaykhantahur District, Toshkent, 100000, Oʻzbekiston",
+      "phone": "994861544"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}
