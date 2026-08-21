@@ -575,5 +575,6 @@
       "phone": "994861544"
     }
   ],
+  "reviews": [],
   "$schema": "./node_modules/json-server/schema.json"
 }

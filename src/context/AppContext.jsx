@@ -215,14 +215,26 @@ export function AppProvider({ children }) {
         date: new Date().toISOString(),
       };
       if (idx >= 0) {
+        fetch(`${API_BASE}/reviews/${entry.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(entry) }).catch(() => {});
         const copy = [...prev];
         copy[idx] = entry;
         return copy;
       }
+      // json-server assigns its own id on POST (ignores the one we send), so reconcile
+      // afterwards — otherwise a later edit would PUT to our locally-made id, which the
+      // server never recognizes, and silently 404.
+      fetch(`${API_BASE}/reviews`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(entry) })
+        .then((r) => r.json())
+        .then((created) => {
+          if (created && created.id && created.id !== entry.id) {
+            setReviews((prev2) => prev2.map((r) => (r.id === entry.id ? created : r)));
+          }
+        })
+        .catch(() => {});
       return [...prev, entry];
     });
     return { ok: true };
-  }, [currentUser]);
+  }, [currentUser, API_BASE]);
 
   const checkout = useCallback(async ({ fullName, address, phone, pointsToUse = 0 } = {}) => {
     if (checkoutInProgress) return null;
@@ -398,6 +410,14 @@ export function AppProvider({ children }) {
   useEffect(() => {
     fetch(`${API_BASE}/products`).then((r) => r.json()).then((data) => {
       if (Array.isArray(data) && data.length > 0) setProducts(data.filter(isValidProduct));
+    }).catch(() => {});
+  }, [API_BASE]);
+
+  // Reviews were localStorage-only before this, so only the browser that wrote one could
+  // ever see it — load the shared copy from the backend so every visitor sees every review.
+  useEffect(() => {
+    fetch(`${API_BASE}/reviews`).then((r) => r.json()).then((data) => {
+      if (Array.isArray(data)) setReviews(data);
     }).catch(() => {});
   }, [API_BASE]);
 
