@@ -67,3 +67,7 @@ body {
 .animate-heart-pop {
   animation: heartPop 0.45s ease;
 }
+
+.animate-icon-pop {
+  animation: heartPop 0.35s ease;
+}

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useApp } from "../context/AppContext";
+import PasswordInput from "../components/PasswordInput";
 
 export default function Login() {
   const { login, register, t, showToast } = useApp();
@@ -49,7 +50,7 @@ export default function Login() {
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t?.name || 'Name'} className="p-2 border rounded" />
         )}
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t?.email || 'Email'} className="p-2 border rounded" />
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t?.password || 'Password'} className="p-2 border rounded" />
+        <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t?.password || 'Password'} className="p-2 border rounded" />
         {error && <div className="text-red-600">{String(error)}</div>}
         <button
           disabled={loading}
