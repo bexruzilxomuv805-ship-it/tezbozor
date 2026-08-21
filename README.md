@@ -1,4 +1,42 @@
-# React + Vite
+# TezBozor
+
+## Deploy (Vercel + Render)
+
+The frontend and backend deploy to separate free-tier hosts. The site's visible domain is
+whatever Vercel assigns — visitors never see or visit the Render URLs, those are only called
+in the background by `fetch`.
+
+**1. Backend — two Render Web Services, both pointing at this repo's `main` branch:**
+
+| Service | Build Command | Start Command |
+|---|---|---|
+| API (products/orders/users) | `npm install` | `npm run start:api` |
+| Image uploads | `npm install` | `npm run start:upload` |
+
+Both need the **Free** instance type and no environment variables. Note: Render's free tier
+has an ephemeral disk — images uploaded through the admin panel after deploy are lost on
+every restart/redeploy. The seed product images in `public/uploads/` are unaffected since
+they ship as part of the Vercel build, not the Render disk.
+
+**2. Frontend — import this repo into Vercel**, then set these Environment Variables
+*before* the first deploy (Vite bakes them into the build, so setting them after a build
+requires redeploying):
+
+```
+VITE_API_BASE=https://<your-api-service>.onrender.com
+VITE_UPLOAD_BASE=https://<your-upload-service>.onrender.com
+```
+
+`vercel.json` in this repo rewrites every path to `/index.html` — without it, deep links like
+`/admin/mahsulotlar` or a hard refresh on any non-root route 404, since React Router only
+handles routing once the app has already loaded and Vercel otherwise looks for a matching
+static file.
+
+If the assigned `<name>.vercel.app` domain is already taken by someone else's project,
+Vercel appends a suffix (`-one`, etc.) automatically — add a custom `vercel.app` subdomain
+under Project Settings → Domains if you want a specific name instead.
+
+## React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
