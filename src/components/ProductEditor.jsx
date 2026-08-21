@@ -7,7 +7,7 @@ import { translateText } from "../utils/translate";
 function Field({ label, children }) {
   return (
     <label className="flex flex-col gap-1 text-xs">
-      <span style={{ color: "#8A8271", fontWeight: 700 }}>{label}</span>
+      <span style={{ color: "var(--gc-muted)", fontWeight: 700 }}>{label}</span>
       {children}
     </label>
   );
@@ -123,7 +123,7 @@ export default function ProductEditor({ product, t, onSave, onClose }) {
               <h3 className="font-display text-lg font-semibold leading-tight" style={{ color: "var(--gc-charcoal)" }}>
                 {product ? t.admin.edit : t.admin.addProduct}
               </h3>
-              <p className="text-xs mt-0.5" style={{ color: "#8A8271" }}>{t.admin.productFormSubtitle}</p>
+              <p className="text-xs mt-0.5" style={{ color: "var(--gc-muted)" }}>{t.admin.productFormSubtitle}</p>
             </div>
           </div>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 shrink-0">
@@ -177,16 +177,16 @@ export default function ProductEditor({ product, t, onSave, onClose }) {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold shrink-0"
-                style={{ background: "#fff", border: "1px solid var(--gc-border)", color: "#6B6455" }}
+                style={{ background: "var(--gc-surface)", border: "1px solid var(--gc-border)", color: "var(--gc-muted-dark)" }}
               >
                 <ImageUp size={14} /> {t.admin.chooseFile}
               </button>
               {uploading ? (
-                <span className="text-xs truncate" style={{ color: "#A39D8C" }}>{t.admin.uploading}</span>
+                <span className="text-xs truncate" style={{ color: "var(--gc-muted-light)" }}>{t.admin.uploading}</span>
               ) : form.image ? (
                 <img src={form.image} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" style={{ border: "1px solid var(--gc-border)" }} />
               ) : (
-                <span className="text-xs truncate" style={{ color: "#A39D8C" }}>{t.admin.noFileChosen}</span>
+                <span className="text-xs truncate" style={{ color: "var(--gc-muted-light)" }}>{t.admin.noFileChosen}</span>
               )}
             </div>
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
@@ -208,7 +208,7 @@ export default function ProductEditor({ product, t, onSave, onClose }) {
           <button
             onClick={onClose}
             className="flex-1 py-2.5 rounded-full text-sm font-bold"
-            style={{ background: "var(--gc-cream-2)", color: "#6B6455" }}
+            style={{ background: "var(--gc-cream-2)", color: "var(--gc-muted-dark)" }}
           >
             {t.admin.cancel}
           </button>
@@ -216,7 +216,7 @@ export default function ProductEditor({ product, t, onSave, onClose }) {
             disabled={!canSave}
             onClick={() => canSave && onSave(form)}
             className="flex-1 py-2.5 rounded-full text-sm font-bold text-white"
-            style={{ background: canSave ? "var(--gc-forest)" : "#B7B19F", cursor: canSave ? "pointer" : "not-allowed" }}
+            style={{ background: canSave ? "var(--gc-forest)" : "var(--gc-disabled)", cursor: canSave ? "pointer" : "not-allowed" }}
           >
             {t.admin.save}
           </button>
@@ -229,7 +229,8 @@ export default function ProductEditor({ product, t, onSave, onClose }) {
           border-radius: 8px;
           padding: 7px 10px;
           font-size: 13px;
-          background: #fff;
+          background: var(--gc-surface);
+          color: var(--gc-charcoal);
           outline: none;
         }
         .admin-input:focus { border-color: var(--gc-leaf); }

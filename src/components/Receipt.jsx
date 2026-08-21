@@ -12,7 +12,7 @@ export default function Receipt({ order }) {
 
   return (
     <div
-      className="w-full max-w-sm mx-auto overflow-hidden rounded-3xl bg-white"
+      className="w-full max-w-sm mx-auto overflow-hidden rounded-3xl bg-(--gc-surface)"
       style={{ border: "1px solid var(--gc-border)", boxShadow: "0 14px 32px rgba(27,77,62,0.08)" }}
     >
       <div className="h-1.5 w-full" style={{ background: style.fg }} />
@@ -22,7 +22,7 @@ export default function Receipt({ order }) {
           <img src="/logo-icon.png" alt="" className="h-11 w-11 rounded-2xl shrink-0" style={{ background: "var(--gc-cream-2)" }} />
           <div className="min-w-0 flex-1">
             <p className="font-display text-base font-bold leading-tight truncate" style={{ color: "var(--gc-charcoal)" }}>{t.appName}</p>
-            <p className="text-[11px]" style={{ color: "#8A8271" }}>{t.receipt} · #{order.id}</p>
+            <p className="text-[11px]" style={{ color: "var(--gc-muted)" }}>{t.receipt} · #{order.id}</p>
           </div>
           <span
             className="shrink-0 px-2.5 py-1 rounded-full text-[11px] font-bold"
@@ -34,11 +34,11 @@ export default function Receipt({ order }) {
 
         <div className="grid grid-cols-2 gap-2.5 mb-4">
           <div className="rounded-xl px-3 py-2" style={{ background: "var(--gc-cream-2)" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "#8A8271" }}>{t.receiptOrderNo}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "var(--gc-muted)" }}>{t.receiptOrderNo}</p>
             <p className="text-xs font-bold font-mono truncate mt-0.5" style={{ color: "var(--gc-charcoal)" }}>#{order.id}</p>
           </div>
           <div className="rounded-xl px-3 py-2" style={{ background: "var(--gc-cream-2)" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "#8A8271" }}>{t.receiptDate}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "var(--gc-muted)" }}>{t.receiptDate}</p>
             <p className="text-xs font-bold truncate mt-0.5" style={{ color: "var(--gc-charcoal)" }}>{formatDate(order.date, lang)}</p>
           </div>
         </div>
@@ -70,7 +70,7 @@ export default function Receipt({ order }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-semibold truncate" style={{ color: "var(--gc-charcoal)" }}>{it.name}</p>
-                  <p className="text-[11px]" style={{ color: "#8A8271" }}>{it.optionLabel}</p>
+                  <p className="text-[11px]" style={{ color: "var(--gc-muted)" }}>{it.optionLabel}</p>
                 </div>
                 <span className="text-xs font-bold font-mono shrink-0" style={{ color: "var(--gc-charcoal)" }}>
                   {formatMoney(it.unitPrice * it.qty, lang, t)}
@@ -81,7 +81,7 @@ export default function Receipt({ order }) {
         </div>
 
         <div className="rounded-2xl p-4 flex flex-col gap-1.5" style={{ background: "var(--gc-cream-2)" }}>
-          <div className="flex justify-between text-xs" style={{ color: "#6B6455" }}>
+          <div className="flex justify-between text-xs" style={{ color: "var(--gc-muted-dark)" }}>
             <span>{t.subtotal}</span>
             <span className="font-mono">{formatMoney(order.subtotal ?? order.total, lang, t)}</span>
           </div>

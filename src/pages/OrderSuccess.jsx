@@ -10,11 +10,11 @@ export default function OrderSuccess() {
 
   return (
     <div className="flex flex-col items-center justify-center text-center py-16 px-6">
-      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: "#E6F0DE" }}>
-        <PartyPopper size={28} color="#2F6B3A" />
+      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: "var(--cat-sabzavot-bg)" }}>
+        <PartyPopper size={28} color="var(--cat-sabzavot-fg)" />
       </div>
       <p className="font-display text-xl font-semibold" style={{ color: "var(--gc-charcoal)" }}>{t.orderPlacedTitle}</p>
-      <p className="text-sm mt-1 mb-6 max-w-xs" style={{ color: "#8A8271" }}>{t.orderPlacedBody(orderId)}</p>
+      <p className="text-sm mt-1 mb-6 max-w-xs" style={{ color: "var(--gc-muted)" }}>{t.orderPlacedBody(orderId)}</p>
 
       {order && <Receipt order={order} />}
 

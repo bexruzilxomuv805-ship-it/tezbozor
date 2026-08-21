@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
-export default function PasswordInput({ value, onChange, placeholder, className = "" }) {
+export default function PasswordInput({ value, onChange, placeholder, className = "", style }) {
   const [visible, setVisible] = useState(false);
 
   return (
@@ -12,13 +12,14 @@ export default function PasswordInput({ value, onChange, placeholder, className 
         onChange={onChange}
         placeholder={placeholder}
         className={`${className} w-full pr-10`}
+        style={style}
       />
       <button
         type="button"
         onClick={() => setVisible((v) => !v)}
         aria-label={visible ? "Parolni yashirish" : "Parolni ko'rsatish"}
         className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center transition hover:opacity-70"
-        style={{ color: "#8A8271" }}
+        style={{ color: "var(--gc-muted)" }}
       >
         {visible ? (
           <EyeOff key="off" size={17} className="animate-icon-pop" />

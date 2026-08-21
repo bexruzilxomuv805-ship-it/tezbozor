@@ -35,14 +35,14 @@ export default function ReviewsModal({ productId, productName, onClose }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md max-h-[85vh] overflow-y-auto rounded-2xl bg-white p-5"
+        className="w-full max-w-md max-h-[85vh] overflow-y-auto rounded-2xl bg-(--gc-surface) p-5"
         style={{ border: "1px solid var(--gc-border)", animation: "modalPop 0.2s ease-out" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3 mb-1">
           <div className="min-w-0">
             <h3 className="font-display text-lg font-semibold truncate" style={{ color: "var(--gc-charcoal)" }}>{t.reviews}</h3>
-            <p className="text-xs truncate" style={{ color: "#8A8271" }}>{productName}</p>
+            <p className="text-xs truncate" style={{ color: "var(--gc-muted)" }}>{productName}</p>
           </div>
           <button
             type="button"
@@ -50,7 +50,7 @@ export default function ReviewsModal({ productId, productName, onClose }) {
             aria-label={t.close}
             className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full hover:bg-black/5 transition"
           >
-            <X size={16} color="#6B6455" />
+            <X size={16} color="var(--gc-muted-dark)" />
           </button>
         </div>
 
@@ -63,14 +63,14 @@ export default function ReviewsModal({ productId, productName, onClose }) {
             placeholder={t.reviewPlaceholder}
             rows={3}
             className="mt-2.5 w-full resize-none rounded-xl px-3.5 py-2.5 text-sm outline-none"
-            style={{ background: "#fff", border: "1px solid var(--gc-border)" }}
+            style={{ background: "var(--gc-surface)", border: "1px solid var(--gc-border)" }}
           />
           <button
             type="button"
             onClick={submit}
             disabled={rating <= 0}
             className="mt-2.5 w-full py-2.5 rounded-full text-sm font-bold text-white transition active:scale-[0.98]"
-            style={{ background: rating <= 0 ? "var(--gc-border)" : "var(--gc-forest)", color: rating <= 0 ? "#A39D8C" : "#fff" }}
+            style={{ background: rating <= 0 ? "var(--gc-border)" : "var(--gc-forest)", color: rating <= 0 ? "var(--gc-muted-light)" : "#fff" }}
           >
             {t.submitReview}
           </button>
@@ -79,17 +79,17 @@ export default function ReviewsModal({ productId, productName, onClose }) {
         <div className="mt-4 flex flex-col gap-3">
           <p className="text-xs font-bold" style={{ color: "var(--gc-charcoal)" }}>{t.reviewsCount(productReviews.length)}</p>
           {productReviews.length === 0 ? (
-            <p className="text-sm text-center py-6" style={{ color: "#8A8271" }}>{t.noReviews}</p>
+            <p className="text-sm text-center py-6" style={{ color: "var(--gc-muted)" }}>{t.noReviews}</p>
           ) : (
             productReviews.map((r) => (
               <div key={r.id} className="rounded-xl p-3" style={{ border: "1px solid var(--gc-border)" }}>
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <span className="text-sm font-semibold truncate" style={{ color: "var(--gc-charcoal)" }}>{r.userName}</span>
-                  <span className="text-[11px] shrink-0" style={{ color: "#8A8271" }}>{formatDate(r.date, lang)}</span>
+                  <span className="text-[11px] shrink-0" style={{ color: "var(--gc-muted)" }}>{formatDate(r.date, lang)}</span>
                 </div>
                 <StarRating value={r.rating} readOnly size={13} />
                 {r.comment && (
-                  <p className="text-sm mt-1.5" style={{ color: "#6B6455" }}>{r.comment}</p>
+                  <p className="text-sm mt-1.5" style={{ color: "var(--gc-muted-dark)" }}>{r.comment}</p>
                 )}
               </div>
             ))

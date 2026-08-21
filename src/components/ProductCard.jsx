@@ -74,7 +74,7 @@ export default function ProductCard({ product }) {
     <div
       className="group h-full flex flex-col overflow-hidden rounded-3xl border transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_18px_28px_rgba(27,77,62,0.08)]"
       style={{
-        background: "#fff",
+        background: "var(--gc-surface)",
         borderColor: "var(--gc-border)",
         boxShadow: "0 8px 18px rgba(27,77,62,0.04)",
       }}
@@ -96,7 +96,7 @@ export default function ProductCard({ product }) {
           <Heart
             size={16}
             strokeWidth={2}
-            color={isWishlisted ? "var(--gc-tomato)" : "#8A8271"}
+            color={isWishlisted ? "var(--gc-tomato)" : "var(--gc-muted)"}
             fill={isWishlisted ? "var(--gc-tomato)" : "transparent"}
             className={heartAnim ? "animate-heart-pop" : ""}
           />
@@ -104,7 +104,7 @@ export default function ProductCard({ product }) {
         {product.stock > 0 && product.stock <= 10 && (
           <span
             className="absolute left-2.5 top-2.5 rounded-full px-2 py-0.5 text-[10px] font-bold"
-            style={{ background: "#FDF1DC", color: "var(--gc-mango-dark)" }}
+            style={{ background: "var(--cat-sut-bg)", color: "var(--gc-mango-dark)" }}
           >
             {t.inStock(product.stock)} {t.unit[product.baseUnit]}
           </span>
@@ -129,7 +129,7 @@ export default function ProductCard({ product }) {
             type="button"
             onClick={() => setReviewsOpen(true)}
             className="mt-1 flex items-center gap-1 text-[11px] font-semibold transition hover:opacity-75"
-            style={{ color: "#8A8271" }}
+            style={{ color: "var(--gc-muted)" }}
           >
             <Star size={12} strokeWidth={1.8} color="var(--gc-mango)" fill={avgRating > 0 ? "var(--gc-mango)" : "transparent"} />
             {avgRating > 0 ? avgRating.toFixed(1) : t.noRatingsYet}
@@ -146,7 +146,7 @@ export default function ProductCard({ product }) {
               className="rounded-full border px-2.5 py-1 text-[11px] font-bold transition whitespace-normal"
               style={{
                 background: i === optionIdx ? style.accent : "var(--gc-cream-2)",
-                color: i === optionIdx ? "#fff" : "#6B6455",
+                color: i === optionIdx ? "#fff" : "var(--gc-muted-dark)",
                 borderColor: i === optionIdx ? style.accent : "var(--gc-border)",
                 transform: i === optionIdx ? "translateY(-1px)" : "none",
               }}
@@ -170,7 +170,7 @@ export default function ProductCard({ product }) {
           className="mt-auto w-full overflow-hidden rounded-full px-2 py-2 text-[10.5px] font-extrabold tracking-[-0.01em] transition active:scale-[0.98]"
           style={{
             background: disabled ? "var(--gc-border)" : flash ? "var(--gc-forest)" : style.accent,
-            color: disabled ? "#A39D8C" : "#fff",
+            color: disabled ? "var(--gc-muted-light)" : "#fff",
             boxShadow: disabled ? "none" : "0 8px 16px rgba(27,77,62,0.18)",
             cursor: disabled ? "not-allowed" : "pointer",
             whiteSpace: "normal",

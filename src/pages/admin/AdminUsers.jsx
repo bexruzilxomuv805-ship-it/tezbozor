@@ -37,7 +37,7 @@ export default function AdminUsers() {
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u.id} className="odd:bg-[#faf9f7]">
+              <tr key={u.id} className="odd:bg-(--gc-surface-alt)">
                 <td className="px-3 py-2">{u.id}</td>
                 <td className="px-3 py-2">{u.name}</td>
                 <td className="px-3 py-2">{u.email}</td>

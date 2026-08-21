@@ -12,7 +12,7 @@ export default function AdminLayout() {
 
   const tabStyle = (isActive) => ({
     background: isActive ? "var(--gc-forest)" : "transparent",
-    color: isActive ? "#fff" : "#6B6455",
+    color: isActive ? "#fff" : "var(--gc-muted-dark)",
   });
 
   return (

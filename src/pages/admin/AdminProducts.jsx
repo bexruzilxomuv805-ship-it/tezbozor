@@ -47,7 +47,7 @@ export default function AdminProducts() {
   return (
     <div>
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-        <p className="text-xs" style={{ color: "#8A8271" }}>{t.admin.productsCount(products.length)}</p>
+        <p className="text-xs" style={{ color: "var(--gc-muted)" }}>{t.admin.productsCount(products.length)}</p>
         <button
           onClick={() => setEditing("new")}
           className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold text-white"
@@ -60,41 +60,41 @@ export default function AdminProducts() {
       <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
         <div className="relative flex-1 min-w-50 max-w-sm">
           {searching ? (
-            <Loader2 size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 animate-spin" color="#8A8271" />
+            <Loader2 size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 animate-spin" color="var(--gc-muted)" />
           ) : (
-            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" color="#8A8271" />
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" color="var(--gc-muted)" />
           )}
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t.searchPlaceholder}
             className="w-full pl-9 pr-3 py-2 rounded-full text-sm outline-none"
-            style={{ background: "#fff", border: "1px solid var(--gc-border)" }}
+            style={{ background: "var(--gc-surface)", border: "1px solid var(--gc-border)" }}
           />
         </div>
         <div className="flex gap-2 rounded-full p-1 shrink-0" style={{ background: "var(--gc-cream-2)" }}>
           <button
             onClick={() => onFilterChange("all")}
             className="px-3.5 py-1.5 rounded-full text-xs font-bold transition"
-            style={{ background: filter === "all" ? "var(--gc-forest)" : "transparent", color: filter === "all" ? "#fff" : "#6B6455" }}
+            style={{ background: filter === "all" ? "var(--gc-forest)" : "transparent", color: filter === "all" ? "#fff" : "var(--gc-muted-dark)" }}
           >
             {t.admin.allProducts}
           </button>
           <button
             onClick={() => onFilterChange("outOfStock")}
             className="px-3.5 py-1.5 rounded-full text-xs font-bold transition"
-            style={{ background: filter === "outOfStock" ? "var(--gc-tomato-dark)" : "transparent", color: filter === "outOfStock" ? "#fff" : "#6B6455" }}
+            style={{ background: filter === "outOfStock" ? "var(--gc-tomato-dark)" : "transparent", color: filter === "outOfStock" ? "#fff" : "var(--gc-muted-dark)" }}
           >
             {t.admin.outOfStockOnly}
           </button>
         </div>
       </div>
 
-      <div className="rounded-2xl overflow-hidden bg-white" style={{ border: "1px solid var(--gc-border)" }}>
+      <div className="rounded-2xl overflow-hidden bg-(--gc-surface)" style={{ border: "1px solid var(--gc-border)" }}>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr style={{ background: "var(--gc-cream-2)", color: "#6B6455" }}>
+              <tr style={{ background: "var(--gc-cream-2)", color: "var(--gc-muted-dark)" }}>
                 <th className="text-left px-3 py-2.5 font-bold text-xs">ID</th>
                 <th className="text-left px-3 py-2.5 font-bold text-xs">{t.admin.name}</th>
                 <th className="text-left px-3 py-2.5 font-bold text-xs">{t.admin.category}</th>
@@ -108,7 +108,7 @@ export default function AdminProducts() {
             <tbody>
               {pageItems.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-10 text-sm" style={{ color: "#8A8271" }}>
+                  <td colSpan={8} className="text-center py-10 text-sm" style={{ color: "var(--gc-muted)" }}>
                     {t.admin.noProductsFound}
                   </td>
                 </tr>
@@ -120,15 +120,15 @@ export default function AdminProducts() {
                   const Icon = CAT_ICON[p.category] || CAT_ICON.sabzavot;
                   return (
                     <tr key={p.id} style={{ borderTop: "1px solid var(--gc-border)" }}>
-                      <td className="px-3 py-2.5 text-xs" style={{ color: "#A39D8C" }}>{p.id}</td>
+                      <td className="px-3 py-2.5 text-xs" style={{ color: "var(--gc-muted-light)" }}>{p.id}</td>
                       <td className="px-3 py-2.5">
                         <div className="font-semibold" style={{ color: "var(--gc-charcoal)" }}>{p.name[lang]}</div>
-                        <div className="text-xs" style={{ color: "#A39D8C" }}>{p.brand}</div>
+                        <div className="text-xs" style={{ color: "var(--gc-muted-light)" }}>{p.brand}</div>
                       </td>
-                      <td className="px-3 py-2.5" style={{ color: "#6B6455" }}>
+                      <td className="px-3 py-2.5" style={{ color: "var(--gc-muted-dark)" }}>
                         {t[(CATEGORIES.find((c) => c.id === p.category) || CATEGORIES[0]).key]}
                       </td>
-                      <td className="px-3 py-2.5" style={{ color: "#6B6455" }}>{t.unit[p.baseUnit]}</td>
+                      <td className="px-3 py-2.5" style={{ color: "var(--gc-muted-dark)" }}>{t.unit[p.baseUnit]}</td>
                       <td className="px-3 py-2.5 text-right">
                         <input
                           type="number"
@@ -151,7 +151,7 @@ export default function AdminProducts() {
                               fontWeight: zero || low ? 700 : 400,
                             }}
                           />
-                          <span className="text-xs font-bold shrink-0" style={{ color: "#8A8271" }}>{t.unit[p.baseUnit]}</span>
+                          <span className="text-xs font-bold shrink-0" style={{ color: "var(--gc-muted)" }}>{t.unit[p.baseUnit]}</span>
                         </div>
                       </td>
                       <td className="px-3 py-2.5">
@@ -170,14 +170,14 @@ export default function AdminProducts() {
                           <button
                             onClick={() => setEditing(p)}
                             className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold shrink-0"
-                            style={{ border: "1px solid var(--gc-border)", color: "#6B6455" }}
+                            style={{ border: "1px solid var(--gc-border)", color: "var(--gc-muted-dark)" }}
                           >
                             <Pencil size={12} /> {t.admin.edit}
                           </button>
                           <button
                             onClick={() => setPendingDelete({ id: p.id, name: p.name[lang] })}
                             className="w-8 h-8 flex items-center justify-center rounded-full shrink-0"
-                            style={{ background: "#FBE6DE" }}
+                            style={{ background: "var(--gc-danger-soft)" }}
                             aria-label={t.admin.delete}
                           >
                             <Trash2 size={14} color="var(--gc-tomato-dark)" />
@@ -193,13 +193,13 @@ export default function AdminProducts() {
         </div>
 
         <div className="flex items-center justify-between px-4 py-3 flex-wrap gap-2" style={{ borderTop: "1px solid var(--gc-border)", background: "var(--gc-cream-2)" }}>
-          <span className="text-xs font-bold" style={{ color: "#6B6455" }}>{t.admin.pageOf(safePage, totalPages)}</span>
+          <span className="text-xs font-bold" style={{ color: "var(--gc-muted-dark)" }}>{t.admin.pageOf(safePage, totalPages)}</span>
           <div className="flex gap-2">
             <button
               disabled={safePage <= 1}
               onClick={() => setPage(safePage - 1)}
               className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold"
-              style={{ background: "#fff", border: "1px solid var(--gc-border)", color: safePage <= 1 ? "#C7C1B2" : "#6B6455", cursor: safePage <= 1 ? "not-allowed" : "pointer" }}
+              style={{ background: "var(--gc-surface)", border: "1px solid var(--gc-border)", color: safePage <= 1 ? "var(--gc-muted-light)" : "var(--gc-muted-dark)", cursor: safePage <= 1 ? "not-allowed" : "pointer" }}
             >
               <ChevronLeft size={13} /> {t.admin.prevPage}
             </button>
@@ -207,7 +207,7 @@ export default function AdminProducts() {
               disabled={safePage >= totalPages}
               onClick={() => setPage(safePage + 1)}
               className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold"
-              style={{ background: "#fff", border: "1px solid var(--gc-border)", color: safePage >= totalPages ? "#C7C1B2" : "#6B6455", cursor: safePage >= totalPages ? "not-allowed" : "pointer" }}
+              style={{ background: "var(--gc-surface)", border: "1px solid var(--gc-border)", color: safePage >= totalPages ? "var(--gc-muted-light)" : "var(--gc-muted-dark)", cursor: safePage >= totalPages ? "not-allowed" : "pointer" }}
             >
               {t.admin.nextPage} <ChevronRight size={13} />
             </button>
@@ -231,21 +231,21 @@ export default function AdminProducts() {
           onClick={() => setPendingDelete(null)}
         >
           <div
-            className="w-full max-w-sm rounded-2xl p-5 bg-white"
+            className="w-full max-w-sm rounded-2xl p-5 bg-(--gc-surface)"
             style={{ border: "1px solid var(--gc-border)", animation: "modalPop 0.2s ease-out" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="w-11 h-11 rounded-full flex items-center justify-center mb-3" style={{ background: "#FBE6DE" }}>
+            <div className="w-11 h-11 rounded-full flex items-center justify-center mb-3" style={{ background: "var(--gc-danger-soft)" }}>
               <Trash2 size={19} color="var(--gc-tomato-dark)" />
             </div>
             <h3 className="font-display text-lg font-semibold mb-1" style={{ color: "var(--gc-charcoal)" }}>{t.admin.confirmDelete}</h3>
-            <p className="text-sm mb-5" style={{ color: "#6B6455" }}>{t.admin.confirmDeleteProduct(pendingDelete.name)}</p>
+            <p className="text-sm mb-5" style={{ color: "var(--gc-muted-dark)" }}>{t.admin.confirmDeleteProduct(pendingDelete.name)}</p>
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setPendingDelete(null)}
                 className="flex-1 py-2.5 rounded-full text-sm font-bold"
-                style={{ background: "var(--gc-cream-2)", color: "#6B6455" }}
+                style={{ background: "var(--gc-cream-2)", color: "var(--gc-muted-dark)" }}
               >
                 {t.admin.confirmNo}
               </button>
@@ -273,6 +273,7 @@ export default function AdminProducts() {
           padding: 7px 10px;
           font-size: 13px;
           background: var(--gc-cream);
+          color: var(--gc-charcoal);
           outline: none;
         }
         .admin-input:focus { border-color: var(--gc-leaf); }

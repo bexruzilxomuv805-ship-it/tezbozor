@@ -34,9 +34,9 @@ export default function Register() {
     <div className="max-w-md mx-auto p-4">
       <h2 className="text-xl font-bold mb-4">{t?.registerTitle || 'Register'}</h2>
       <form onSubmit={submit} className="flex flex-col gap-3">
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t?.name || 'Name'} className="p-2 border rounded" />
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t?.email || 'Email'} className="p-2 border rounded" />
-        <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t?.password || 'Password'} className="p-2 border rounded" />
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t?.name || 'Name'} className="p-2 rounded" style={{ background: "var(--gc-surface)", color: "var(--gc-charcoal)", border: "1px solid var(--gc-border)" }} />
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t?.email || 'Email'} className="p-2 rounded" style={{ background: "var(--gc-surface)", color: "var(--gc-charcoal)", border: "1px solid var(--gc-border)" }} />
+        <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t?.password || 'Password'} className="p-2 rounded" style={{ background: "var(--gc-surface)", color: "var(--gc-charcoal)", border: "1px solid var(--gc-border)" }} />
         {error && <div className="text-red-600">{String(error)}</div>}
         <button
           disabled={loading}

@@ -22,7 +22,7 @@ export default function Home() {
           <h1 className="font-display text-4xl sm:text-5xl font-semibold leading-tight" style={{ color: "var(--gc-charcoal)" }}>
             {t.heroTitle}
           </h1>
-          <p className="mt-4 text-base max-w-md" style={{ color: "#6B6455" }}>
+          <p className="mt-4 text-base max-w-md" style={{ color: "var(--gc-muted-dark)" }}>
             {t.heroSubtitle}
           </p>
           <Link
@@ -42,7 +42,7 @@ export default function Home() {
                 key={c.id}
                 to={`/dokon?kategoriya=${c.id}`}
                 className="rounded-2xl p-5 flex flex-col gap-3 transition hover:-translate-y-0.5"
-                style={{ background: "#fff", border: "1px solid var(--gc-border)" }}
+                style={{ background: "var(--gc-surface)", border: "1px solid var(--gc-border)" }}
               >
                 <div
                   className="w-11 h-11 rounded-xl flex items-center justify-center"
@@ -93,7 +93,7 @@ export default function Home() {
 
 function WhyCard({ Icon, title, body }) {
   return (
-    <div className="rounded-2xl p-5" style={{ background: "#fff", border: "1px solid var(--gc-border)" }}>
+    <div className="rounded-2xl p-5" style={{ background: "var(--gc-surface)", border: "1px solid var(--gc-border)" }}>
       <div
         className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
         style={{ background: "var(--gc-cream-2)" }}
@@ -101,7 +101,7 @@ function WhyCard({ Icon, title, body }) {
         <Icon size={20} color="var(--gc-leaf)" strokeWidth={1.6} />
       </div>
       <p className="font-display font-semibold text-sm mb-1" style={{ color: "var(--gc-charcoal)" }}>{title}</p>
-      <p className="text-xs leading-relaxed" style={{ color: "#8A8271" }}>{body}</p>
+      <p className="text-xs leading-relaxed" style={{ color: "var(--gc-muted)" }}>{body}</p>
     </div>
   );
 }

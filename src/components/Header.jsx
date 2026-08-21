@@ -1,17 +1,17 @@
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { ShoppingCart, Globe, LayoutGrid, Store, ClipboardList, LogOut, Heart, UserCircle2 } from "lucide-react";
+import { ShoppingCart, Globe, LayoutGrid, Store, ClipboardList, LogOut, Heart, UserCircle2, Sun, Moon } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { LANGS } from "../i18n/translations";
 
 export default function Header() {
-  const { lang, setLang, t, cartCount, currentUser, logout, newOrdersCount, wishlist } = useApp();
+  const { lang, setLang, t, theme, toggleTheme, cartCount, currentUser, logout, newOrdersCount, wishlist } = useApp();
   const navigate = useNavigate();
   const [confirmingLogout, setConfirmingLogout] = useState(false);
 
   const navLinkClass = ({ isActive }) =>
     "relative flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold transition " +
-    (isActive ? "bg-[var(--gc-forest-light)] text-white" : "text-white/85 hover:bg-white/10");
+    (isActive ? "bg-(--gc-forest-light) text-white" : "text-white/85 hover:bg-white/10");
 
   return (
     <>
@@ -70,6 +70,21 @@ export default function Header() {
               </button>
             ))}
           </div>
+
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={theme === "dark" ? t.lightMode : t.darkMode}
+            title={theme === "dark" ? t.lightMode : t.darkMode}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition active:scale-90 sm:h-9 sm:w-9"
+            style={{ background: "var(--gc-forest-light)" }}
+          >
+            {theme === "dark" ? (
+              <Sun key="sun" size={15} className="animate-icon-pop" color="var(--gc-mango)" />
+            ) : (
+              <Moon key="moon" size={15} className="animate-icon-pop" color="#B9D6C9" />
+            )}
+          </button>
 
           {/* Admins land on /admin from the bottom tab bar on mobile, so unlike regular users
               they have no other route to their own profile there — give them a compact icon here. */}
@@ -155,24 +170,24 @@ export default function Header() {
     {confirmingLogout && (
       <div className="fixed inset-0 z-70 flex items-center justify-center p-4" style={{ background: "rgba(43,38,32,0.45)" }} onClick={() => setConfirmingLogout(false)}>
         <div
-          className="w-full max-w-sm rounded-2xl p-5 bg-white"
+          className="w-full max-w-sm rounded-2xl p-5 bg-(--gc-surface)"
           style={{ border: "1px solid var(--gc-border)" }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="w-11 h-11 rounded-full flex items-center justify-center mb-3" style={{ background: "#FBE6DE" }}>
+          <div className="w-11 h-11 rounded-full flex items-center justify-center mb-3" style={{ background: "var(--gc-danger-soft)" }}>
             <LogOut size={19} color="var(--gc-tomato-dark)" />
           </div>
           <h3 className="font-display text-lg font-semibold mb-1" style={{ color: "var(--gc-charcoal)" }}>
             {t.logoutConfirmTitle}
           </h3>
-          <p className="text-sm mb-5" style={{ color: "#6B6455" }}>
+          <p className="text-sm mb-5" style={{ color: "var(--gc-muted-dark)" }}>
             {t.logoutConfirmBody}
           </p>
           <div className="flex gap-2">
             <button
               onClick={() => setConfirmingLogout(false)}
               className="flex-1 py-2.5 rounded-full text-sm font-bold"
-              style={{ background: "var(--gc-cream-2)", color: "#6B6455" }}
+              style={{ background: "var(--gc-cream-2)", color: "var(--gc-muted-dark)" }}
             >
               {t.logoutConfirmCancel}
             </button>

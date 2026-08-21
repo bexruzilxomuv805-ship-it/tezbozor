@@ -10,7 +10,7 @@ export default function StockAlerts({ products, lang, t }) {
   const alerts = [...outOfStock, ...lowStock];
 
   return (
-    <div className="rounded-2xl p-4 sm:p-5 bg-white" style={{ border: "1px solid var(--gc-border)" }}>
+    <div className="rounded-2xl p-4 sm:p-5 bg-(--gc-surface)" style={{ border: "1px solid var(--gc-border)" }}>
       <div className="flex items-center justify-between gap-3 mb-3">
         <h3 className="font-display text-base font-semibold" style={{ color: "var(--gc-charcoal)" }}>
           {t.admin.stockAlerts}
@@ -25,7 +25,7 @@ export default function StockAlerts({ products, lang, t }) {
       {alerts.length === 0 ? (
         <div className="flex items-center gap-2.5 py-4">
           <CheckCircle2 size={18} color="var(--gc-leaf)" />
-          <p className="text-sm" style={{ color: "#6B6455" }}>{t.admin.stockAlertsEmpty}</p>
+          <p className="text-sm" style={{ color: "var(--gc-muted-dark)" }}>{t.admin.stockAlertsEmpty}</p>
         </div>
       ) : (
         <div className="flex flex-col gap-2">
@@ -48,7 +48,7 @@ export default function StockAlerts({ products, lang, t }) {
                 <span
                   className="flex items-center gap-1 shrink-0 px-2 py-1 rounded-full text-[10px] font-bold"
                   style={{
-                    background: isOut ? "#FBE6DE" : "#FDF1DC",
+                    background: isOut ? "var(--gc-danger-soft)" : "var(--cat-sut-bg)",
                     color: isOut ? "var(--gc-tomato-dark)" : "var(--gc-mango-dark)",
                   }}
                 >

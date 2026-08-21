@@ -76,7 +76,7 @@ export default function SalesChart({ orders, lang, t }) {
   const hovered = hoverIdx !== null ? buckets[hoverIdx] : null;
 
   return (
-    <div className="rounded-2xl p-4 sm:p-5 bg-white" style={{ border: "1px solid var(--gc-border)" }}>
+    <div className="rounded-2xl p-4 sm:p-5 bg-(--gc-surface)" style={{ border: "1px solid var(--gc-border)" }}>
       <div className="flex items-center justify-between gap-3 mb-1 flex-wrap">
         <h3 className="font-display text-base font-semibold" style={{ color: "var(--gc-charcoal)" }}>
           {t.admin.salesChart}
@@ -88,7 +88,7 @@ export default function SalesChart({ orders, lang, t }) {
               type="button"
               onClick={() => { setMode(m); setHoverIdx(null); }}
               className="px-3 py-1 rounded-full text-xs font-bold transition"
-              style={{ background: mode === m ? "var(--gc-forest)" : "transparent", color: mode === m ? "#fff" : "#6B6455" }}
+              style={{ background: mode === m ? "var(--gc-forest)" : "transparent", color: mode === m ? "#fff" : "var(--gc-muted-dark)" }}
             >
               {m === "daily" ? t.admin.daily : t.admin.weekly}
             </button>
@@ -97,7 +97,7 @@ export default function SalesChart({ orders, lang, t }) {
       </div>
 
       {!hasAnySales ? (
-        <p className="text-sm text-center py-10" style={{ color: "#8A8271" }}>{t.admin.noSalesYet}</p>
+        <p className="text-sm text-center py-10" style={{ color: "var(--gc-muted)" }}>{t.admin.noSalesYet}</p>
       ) : (
         <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label={t.admin.salesChart}>
           <line x1={0} y1={BASELINE_Y} x2={W} y2={BASELINE_Y} stroke="var(--gc-border)" strokeWidth={1} />
@@ -132,7 +132,7 @@ export default function SalesChart({ orders, lang, t }) {
                     {formatMoney(b.total, lang, t)}
                   </text>
                 )}
-                <text x={cx} y={H - 8} textAnchor="middle" fontSize="16" fontWeight="600" fill="#6B6455">
+                <text x={cx} y={H - 8} textAnchor="middle" fontSize="16" fontWeight="600" fill="var(--gc-muted-dark)">
                   {mode === "daily" ? formatWeekday(b.start, lang) : formatShortDate(b.start, lang)}
                 </text>
               </g>
@@ -156,7 +156,7 @@ export default function SalesChart({ orders, lang, t }) {
                 <text x={boxX + boxW / 2} y={boxY + 18} textAnchor="middle" fontSize="15" fontWeight="700" fill="#fff">
                   {valueStr}
                 </text>
-                <text x={boxX + boxW / 2} y={boxY + 34} textAnchor="middle" fontSize="12" fill="#D8D2C2">
+                <text x={boxX + boxW / 2} y={boxY + 34} textAnchor="middle" fontSize="12" fill="var(--gc-muted-light)">
                   {label}
                 </text>
               </g>

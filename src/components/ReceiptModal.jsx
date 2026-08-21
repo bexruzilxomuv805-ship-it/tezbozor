@@ -21,7 +21,7 @@ export default function ReceiptModal({ order, onClose }) {
           type="button"
           onClick={onClose}
           className="w-full shrink-0 py-2.5 rounded-full text-sm font-bold transition active:scale-[0.98]"
-          style={{ background: "#fff", color: "var(--gc-charcoal)", border: "1px solid var(--gc-border)" }}
+          style={{ background: "var(--gc-surface)", color: "var(--gc-charcoal)", border: "1px solid var(--gc-border)" }}
         >
           {t.close}
         </button>

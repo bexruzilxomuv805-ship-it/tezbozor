@@ -16,13 +16,13 @@ export default function Stepper({ value, onChange, min = 1, max = 99, disabled =
 
   return (
     <div
-      className={`flex items-center overflow-hidden rounded-full border bg-[#f8f6f0] shadow-sm ${disabled ? 'opacity-80' : ''}`}
+      className={`flex items-center overflow-hidden rounded-full border bg-(--gc-surface-alt) shadow-sm ${disabled ? 'opacity-80' : ''}`}
       style={{ borderColor: "var(--gc-border)" }}
     >
       <button type="button" onClick={dec} className={btnClass} aria-label="minus" disabled={disabled}>
         <Minus size={13} strokeWidth={2.2} />
       </button>
-      <span className="min-w-6 text-center text-sm font-bold leading-none text-[#2b2620]">{value}</span>
+      <span className="min-w-6 text-center text-sm font-bold leading-none text-(--gc-charcoal)">{value}</span>
       <button type="button" onClick={inc} className={btnClass} aria-label="plus" disabled={disabled}>
         <Plus size={13} strokeWidth={2.2} />
       </button>

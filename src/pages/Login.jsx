@@ -47,10 +47,10 @@ export default function Login() {
       <h2 className="text-xl font-bold mb-4">{t?.loginTitle || 'Login'}</h2>
       <form onSubmit={submit} className="flex flex-col gap-3">
         {isRegister && (
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t?.name || 'Name'} className="p-2 border rounded" />
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t?.name || 'Name'} className="p-2 rounded" style={{ background: "var(--gc-surface)", color: "var(--gc-charcoal)", border: "1px solid var(--gc-border)" }} />
         )}
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t?.email || 'Email'} className="p-2 border rounded" />
-        <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t?.password || 'Password'} className="p-2 border rounded" />
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t?.email || 'Email'} className="p-2 rounded" style={{ background: "var(--gc-surface)", color: "var(--gc-charcoal)", border: "1px solid var(--gc-border)" }} />
+        <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t?.password || 'Password'} className="p-2 rounded" style={{ background: "var(--gc-surface)", color: "var(--gc-charcoal)", border: "1px solid var(--gc-border)" }} />
         {error && <div className="text-red-600">{String(error)}</div>}
         <button
           disabled={loading}
@@ -65,12 +65,12 @@ export default function Login() {
       <div className="mt-3 text-sm text-center">
         {!isRegister ? (
           <>
-            <span className="text-[#6B6455]">{t?.noAccount || "Don't have an account?"}</span>
+            <span className="text-(--gc-muted-dark)">{t?.noAccount || "Don't have an account?"}</span>
             <button onClick={() => setIsRegister(true)} className="ml-2 font-bold" style={{ color: "var(--gc-forest)" }}>{t?.register || 'Register'}</button>
           </>
         ) : (
           <>
-            <span className="text-[#6B6455]">{t?.haveAccount || 'Already have an account?'}</span>
+            <span className="text-(--gc-muted-dark)">{t?.haveAccount || 'Already have an account?'}</span>
             <button onClick={() => setIsRegister(false)} className="ml-2 font-bold" style={{ color: "var(--gc-forest)" }}>{t?.login || 'Login'}</button>
           </>
         )}

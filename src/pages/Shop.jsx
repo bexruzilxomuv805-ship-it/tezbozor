@@ -44,22 +44,22 @@ export default function Shop() {
         <h1 className="font-display text-2xl font-semibold" style={{ color: "var(--gc-charcoal)" }}>
           {t.navShop}
         </h1>
-        <p className="text-sm mt-1 max-w-lg" style={{ color: "#6B6455" }}>{t.tagline}</p>
+        <p className="text-sm mt-1 max-w-lg" style={{ color: "var(--gc-muted-dark)" }}>{t.tagline}</p>
       </div>
 
       <div className="max-w-6xl mx-auto px-4 pt-3">
         <div className="relative max-w-sm">
           {searching ? (
-            <Loader2 size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 animate-spin" color="#8A8271" />
+            <Loader2 size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 animate-spin" color="var(--gc-muted)" />
           ) : (
-            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" color="#8A8271" />
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" color="var(--gc-muted)" />
           )}
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t.searchPlaceholder}
             className="w-full pl-9 pr-3 py-2 rounded-full text-sm outline-none"
-            style={{ background: "#fff", border: "1px solid var(--gc-border)" }}
+            style={{ background: "var(--gc-surface)", border: "1px solid var(--gc-border)" }}
           />
         </div>
       </div>
@@ -79,7 +79,7 @@ export default function Shop() {
 
       <div className="max-w-6xl mx-auto px-4 pb-16">
         {filtered.length === 0 ? (
-          <p className="text-sm text-center py-16" style={{ color: "#8A8271" }}>—</p>
+          <p className="text-sm text-center py-16" style={{ color: "var(--gc-muted)" }}>—</p>
         ) : (
           <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 xl:grid-cols-5">
             {filtered.map((p) => (

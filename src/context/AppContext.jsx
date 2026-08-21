@@ -32,6 +32,19 @@ export function AppProvider({ children }) {
       return "uz";
     }
   });
+  // The inline script in index.html already stamps documentElement's data-theme before
+  // React mounts (avoids a light/dark flash) — read that back here rather than re-deciding,
+  // so this state and the DOM never briefly disagree.
+  const [theme, setTheme] = useState(() => {
+    try {
+      return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+    } catch (e) {
+      return "light";
+    }
+  });
+  const toggleTheme = useCallback(() => {
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+  }, []);
   const [products, setProducts] = useState(() => {
     try {
       const s = localStorage.getItem("products");
@@ -466,6 +479,12 @@ export function AppProvider({ children }) {
     try { localStorage.setItem("lang", lang); } catch (e) {}
   }, [lang]);
   useEffect(() => {
+    try {
+      document.documentElement.setAttribute("data-theme", theme);
+      localStorage.setItem("theme", theme);
+    } catch (e) {}
+  }, [theme]);
+  useEffect(() => {
     try { localStorage.setItem("products", JSON.stringify(products)); } catch (e) {}
   }, [products]);
   useEffect(() => {
@@ -495,6 +514,7 @@ export function AppProvider({ children }) {
 
   const value = {
     lang, setLang, t,
+    theme, toggleTheme,
     API_BASE,
     products, updateProduct, deleteProduct, addProduct,
     cart, addToCart, updateCartQty, removeFromCart, cartCount, cartTotal,

@@ -20,7 +20,7 @@ export default function BottomTabBar() {
   ];
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t bg-[#f7f4ee]/95 backdrop-blur-md shadow-[0_-10px_30px_rgba(16,36,28,0.08)] lg:hidden" style={{ borderColor: "rgba(43,38,32,0.08)" }}>
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t bg-(--gc-surface-alt)/95 backdrop-blur-md shadow-[0_-10px_30px_rgba(16,36,28,0.08)] lg:hidden" style={{ borderColor: "rgba(43,38,32,0.08)" }}>
       <div className="mx-auto flex max-w-2xl items-center justify-between px-3 pb-[max(env(safe-area-inset-bottom),0.7rem)] pt-2">
         {items.map(({ to, label, Icon, badge }) => (
           <NavLink
@@ -29,7 +29,7 @@ export default function BottomTabBar() {
             end={to === "/"}
             className="relative flex w-full flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-[10px] font-bold transition"
             style={({ isActive }) => ({
-              color: isActive ? "var(--gc-forest)" : "#72695f",
+              color: isActive ? "var(--gc-forest)" : "var(--gc-muted-dark)",
             })}
           >
             <span className="relative flex h-8 w-8 items-center justify-center rounded-full transition" style={{ background: "rgba(27,77,62,0.08)" }}>

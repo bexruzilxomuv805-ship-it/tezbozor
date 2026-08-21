@@ -37,10 +37,10 @@ export default function MyOrders() {
     return (
       <div className="flex flex-col items-center justify-center text-center py-24 px-6">
         <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: "var(--gc-cream-2)" }}>
-          <ClipboardList size={26} color="#8A8271" />
+          <ClipboardList size={26} color="var(--gc-muted)" />
         </div>
         <p className="font-display text-lg font-semibold" style={{ color: "var(--gc-charcoal)" }}>{t.myOrdersEmptyTitle}</p>
-        <p className="text-sm mt-1 mb-5" style={{ color: "#8A8271" }}>{t.myOrdersEmptyBody}</p>
+        <p className="text-sm mt-1 mb-5" style={{ color: "var(--gc-muted)" }}>{t.myOrdersEmptyBody}</p>
         <Link to="/dokon" className="px-5 py-2.5 rounded-full text-sm font-bold text-white" style={{ background: "var(--gc-leaf)" }}>
           {t.goShopping}
         </Link>
@@ -51,7 +51,7 @@ export default function MyOrders() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
       <h1 className="font-display text-xl sm:text-2xl font-semibold mb-4" style={{ color: "var(--gc-charcoal)" }}>
-        {t.myOrders} <span style={{ color: "#8A8271", fontSize: 15 }}>· {t.itemsCount(myOrders.length)}</span>
+        {t.myOrders} <span style={{ color: "var(--gc-muted)", fontSize: 15 }}>· {t.itemsCount(myOrders.length)}</span>
       </h1>
 
       <div className="flex flex-col gap-3">
@@ -59,11 +59,11 @@ export default function MyOrders() {
           const status = o.status || "new";
           const style = STATUS_STYLE[status];
           return (
-            <div key={o.id} className="rounded-2xl p-3.5 sm:p-4 bg-white" style={{ border: "1px solid var(--gc-border)" }}>
+            <div key={o.id} className="rounded-2xl p-3.5 sm:p-4 bg-(--gc-surface)" style={{ border: "1px solid var(--gc-border)" }}>
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="min-w-0">
                   <p className="text-sm font-bold truncate" style={{ color: "var(--gc-charcoal)" }}>{t.admin.orderFrom} #{o.id}</p>
-                  <p className="text-[11px]" style={{ color: "#8A8271" }}>{formatDate(o.date, lang)}</p>
+                  <p className="text-[11px]" style={{ color: "var(--gc-muted)" }}>{formatDate(o.date, lang)}</p>
                 </div>
                 <span
                   className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold shrink-0"
@@ -74,14 +74,14 @@ export default function MyOrders() {
               </div>
 
               {o.address && (
-                <div className="flex items-center gap-1 text-xs mb-2" style={{ color: "#6B6455" }}>
+                <div className="flex items-center gap-1 text-xs mb-2" style={{ color: "var(--gc-muted-dark)" }}>
                   <MapPin size={12} className="shrink-0" />
                   <span className="truncate">{o.address}</span>
                 </div>
               )}
 
               {status === "cancelled" && o.cancelReason && (
-                <div className="text-xs mb-2 px-2.5 py-1.5 rounded-lg" style={{ background: "#FBE6DE", color: "var(--gc-tomato-dark)" }}>
+                <div className="text-xs mb-2 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--gc-danger-soft)", color: "var(--gc-tomato-dark)" }}>
                   {t.reasonLabel}: {o.cancelReason}
                 </div>
               )}
@@ -102,7 +102,7 @@ export default function MyOrders() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold truncate" style={{ color: "var(--gc-charcoal)" }}>{it.name}</p>
-                        <p className="text-[11px]" style={{ color: "#8A8271" }}>{it.optionLabel} × {it.qty}</p>
+                        <p className="text-[11px]" style={{ color: "var(--gc-muted)" }}>{it.optionLabel} × {it.qty}</p>
                       </div>
                       <span className="text-xs font-bold shrink-0" style={{ color: "var(--gc-charcoal)" }}>
                         {formatMoney(it.unitPrice * it.qty, lang, t)}
@@ -134,7 +134,7 @@ export default function MyOrders() {
                     type="button"
                     onClick={() => setCancelling(o.id)}
                     className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-bold transition"
-                    style={{ background: "#FBE6DE", color: "var(--gc-tomato-dark)" }}
+                    style={{ background: "var(--gc-danger-soft)", color: "var(--gc-tomato-dark)" }}
                   >
                     <Ban size={13} /> {t.cancelOrder}
                   </button>
@@ -154,12 +154,12 @@ export default function MyOrders() {
           onClick={() => setCancelling(null)}
         >
           <div
-            className="w-full max-w-sm rounded-2xl p-5 bg-white"
+            className="w-full max-w-sm rounded-2xl p-5 bg-(--gc-surface)"
             style={{ border: "1px solid var(--gc-border)", animation: "modalPop 0.2s ease-out" }}
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="font-display text-lg font-semibold mb-1" style={{ color: "var(--gc-charcoal)" }}>{t.cancelOrderTitle}</h3>
-            <p className="text-sm mb-3" style={{ color: "#6B6455" }}>{t.cancelReasonPrompt}</p>
+            <p className="text-sm mb-3" style={{ color: "var(--gc-muted-dark)" }}>{t.cancelReasonPrompt}</p>
 
             <div className="flex flex-col gap-2 mb-3">
               {CANCEL_REASON_KEYS.map((key) => (
@@ -167,7 +167,7 @@ export default function MyOrders() {
                   key={key}
                   className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm cursor-pointer transition"
                   style={{
-                    background: reasonKey === key ? "var(--gc-cream-2)" : "#fff",
+                    background: reasonKey === key ? "var(--gc-cream-2)" : "var(--gc-surface)",
                     border: `1.5px solid ${reasonKey === key ? "var(--gc-forest)" : "var(--gc-border)"}`,
                     color: "var(--gc-charcoal)",
                   }}
@@ -200,7 +200,7 @@ export default function MyOrders() {
                 type="button"
                 onClick={() => setCancelling(null)}
                 className="flex-1 py-2.5 rounded-full text-sm font-bold"
-                style={{ background: "var(--gc-cream-2)", color: "#6B6455" }}
+                style={{ background: "var(--gc-cream-2)", color: "var(--gc-muted-dark)" }}
               >
                 {t.admin.cancel}
               </button>

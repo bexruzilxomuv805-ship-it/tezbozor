@@ -25,6 +25,18 @@
     <meta name="twitter:title" content="TezBozor — sabzavot, meva va oziq-ovqat yetkazib berish" />
     <meta name="twitter:description" content="Bugun buyurtma, bugun yetkazamiz." />
     <meta name="twitter:image" content="https://tezbozor-uz.vercel.app/og-image.png" />
+    <script>
+      // Stamp the theme before first paint so there's no light/dark flash while React mounts.
+      (function () {
+        try {
+          var saved = localStorage.getItem("theme");
+          var theme = saved === "dark" || saved === "light"
+            ? saved
+            : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+          document.documentElement.setAttribute("data-theme", theme);
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

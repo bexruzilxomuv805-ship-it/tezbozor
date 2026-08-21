@@ -7,11 +7,13 @@ export const CATEGORIES = [
   { id: "non", icon: Wheat, key: "cat_non" },
 ];
 
+// Colors are CSS custom properties (see src/index.css) so category chips/badges/icons
+// re-theme automatically in dark mode without touching every place that reads CAT_STYLE.
 export const CAT_STYLE = {
-  sabzavot: { bg: "#E6F0DE", fg: "#2F6B3A", accent: "#3F8355" },
-  meva: { bg: "#FBE6DE", fg: "#B23E1D", accent: "#E8532E" },
-  sut: { bg: "#FDF1DC", fg: "#966114", accent: "#F2A93B" },
-  non: { bg: "#F3E9D8", fg: "#7A5A24", accent: "#C9922E" },
+  sabzavot: { bg: "var(--cat-sabzavot-bg)", fg: "var(--cat-sabzavot-fg)", accent: "var(--cat-sabzavot-accent)" },
+  meva: { bg: "var(--cat-meva-bg)", fg: "var(--cat-meva-fg)", accent: "var(--cat-meva-accent)" },
+  sut: { bg: "var(--cat-sut-bg)", fg: "var(--cat-sut-fg)", accent: "var(--cat-sut-accent)" },
+  non: { bg: "var(--cat-non-bg)", fg: "var(--cat-non-fg)", accent: "var(--cat-non-accent)" },
 };
 
 export const CAT_ICON = { sabzavot: Carrot, meva: Apple, sut: Milk, non: Wheat };

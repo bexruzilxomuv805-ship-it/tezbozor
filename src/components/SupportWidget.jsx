@@ -12,7 +12,7 @@ function SupportLink({ href, icon, iconBg, iconColor, label, sublabel }) {
       href={href}
       target={href.startsWith("tel:") ? undefined : "_blank"}
       rel={href.startsWith("tel:") ? undefined : "noopener noreferrer"}
-      className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-sm font-semibold transition hover:bg-[var(--gc-cream-2)]"
+      className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-sm font-semibold transition hover:bg-(--gc-cream-2)"
       style={{ color: "var(--gc-charcoal)" }}
     >
       <span
@@ -24,7 +24,7 @@ function SupportLink({ href, icon, iconBg, iconColor, label, sublabel }) {
       <span className="flex flex-col leading-tight min-w-0">
         <span className="truncate">{label}</span>
         {sublabel && (
-          <span className="text-[11px] font-normal truncate" style={{ color: "#8A8271" }}>
+          <span className="text-[11px] font-normal truncate" style={{ color: "var(--gc-muted)" }}>
             {sublabel}
           </span>
         )}
@@ -41,7 +41,7 @@ export default function SupportWidget() {
     <div className="fixed z-60 bottom-24 right-4 lg:bottom-6 lg:right-6">
       {open && (
         <div
-          className="absolute bottom-16 right-0 w-60 rounded-2xl bg-white p-3 flex flex-col gap-1"
+          className="absolute bottom-16 right-0 w-60 rounded-2xl bg-(--gc-surface) p-3 flex flex-col gap-1"
           style={{
             border: "1px solid var(--gc-border)",
             boxShadow: "0 16px 32px rgba(27,77,62,0.18)",
@@ -49,7 +49,7 @@ export default function SupportWidget() {
           }}
         >
           <div className="flex items-center justify-between px-1 pb-1.5 mb-0.5" style={{ borderBottom: "1px solid var(--gc-border)" }}>
-            <span className="text-xs font-bold uppercase tracking-wide" style={{ color: "#8A8271" }}>
+            <span className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--gc-muted)" }}>
               {t.support}
             </span>
             <button
@@ -65,16 +65,16 @@ export default function SupportWidget() {
           <SupportLink
             href={TELEGRAM_USER}
             icon={<Send size={15} />}
-            iconBg="#e3f1fb"
-            iconColor="#2b7fc4"
+            iconBg="var(--gc-telegram-soft)"
+            iconColor="var(--gc-telegram-fg)"
             label={t.supportTelegram}
             sublabel="@FRONT_END16"
           />
           <SupportLink
             href={TELEGRAM_CHANNEL}
             icon={<Megaphone size={15} />}
-            iconBg="#e3f1fb"
-            iconColor="#2b7fc4"
+            iconBg="var(--gc-telegram-soft)"
+            iconColor="var(--gc-telegram-fg)"
             label={t.supportChannel}
             sublabel="Front_End_pro16"
           />

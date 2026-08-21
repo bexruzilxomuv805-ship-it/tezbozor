@@ -106,10 +106,10 @@ export default function Cart() {
     return (
       <div className="flex flex-col items-center justify-center text-center py-24 px-6">
         <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: "var(--gc-cream-2)" }}>
-          <ShoppingCart size={26} color="#8A8271" />
+          <ShoppingCart size={26} color="var(--gc-muted)" />
         </div>
         <p className="font-display text-lg font-semibold" style={{ color: "var(--gc-charcoal)" }}>{t.cartEmptyTitle}</p>
-        <p className="text-sm mt-1 mb-5" style={{ color: "#8A8271" }}>{t.cartEmptyBody}</p>
+        <p className="text-sm mt-1 mb-5" style={{ color: "var(--gc-muted)" }}>{t.cartEmptyBody}</p>
         <Link
           to="/dokon"
           className="px-5 py-2.5 rounded-full text-sm font-bold text-white"
@@ -124,7 +124,7 @@ export default function Cart() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
       <h1 className="font-display text-2xl font-semibold mb-4" style={{ color: "var(--gc-charcoal)" }}>
-        {t.cart} <span style={{ color: "#8A8271", fontSize: 15 }}>· {t.itemsCount(cartCount)}</span>
+        {t.cart} <span style={{ color: "var(--gc-muted)", fontSize: 15 }}>· {t.itemsCount(cartCount)}</span>
       </h1>
 
       <div className="flex flex-col gap-2.5 mb-5">
@@ -136,7 +136,7 @@ export default function Cart() {
           return (
             <div
               key={item.key}
-              className="flex items-center gap-3 p-3 rounded-2xl bg-white"
+              className="flex items-center gap-3 p-3 rounded-2xl bg-(--gc-surface)"
               style={{ border: "1px solid var(--gc-border)" }}
             >
               <div className="w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center shrink-0" style={{ background: style.bg }}>
@@ -148,7 +148,7 @@ export default function Cart() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate" style={{ color: "var(--gc-charcoal)" }}>{item.name}</p>
-                <p className="text-xs" style={{ color: "#8A8271" }}>
+                <p className="text-xs" style={{ color: "var(--gc-muted)" }}>
                   {item.optionLabel} · {formatMoney(item.unitPrice, lang, t)}
                 </p>
               </div>
@@ -172,7 +172,7 @@ export default function Cart() {
 
       {savedAddresses.length > 0 && (
         <div className="mb-4">
-          <p className="text-xs font-bold mb-2" style={{ color: "#8A8271" }}>{t.savedAddresses}</p>
+          <p className="text-xs font-bold mb-2" style={{ color: "var(--gc-muted)" }}>{t.savedAddresses}</p>
           <div className="flex gap-2 overflow-x-auto pb-1">
             {savedAddresses.map((a) => {
               const active = selectedSavedId === a.id;
@@ -183,13 +183,13 @@ export default function Cart() {
                   onClick={() => selectSavedAddress(a)}
                   className="relative shrink-0 w-52 text-left rounded-xl p-3 pr-7 transition"
                   style={{
-                    background: active ? "var(--gc-cream-2)" : "#fff",
+                    background: active ? "var(--gc-cream-2)" : "var(--gc-surface)",
                     border: `1.5px solid ${active ? "var(--gc-forest)" : "var(--gc-border)"}`,
                   }}
                 >
                   <p className="text-xs font-bold truncate" style={{ color: "var(--gc-charcoal)" }}>{a.fullName}</p>
-                  <p className="text-[11px] truncate" style={{ color: "#8A8271" }}>{a.phone}</p>
-                  <p className="flex items-start gap-1 text-[11px] mt-0.5 line-clamp-2" style={{ color: "#6B6455" }}>
+                  <p className="text-[11px] truncate" style={{ color: "var(--gc-muted)" }}>{a.phone}</p>
+                  <p className="flex items-start gap-1 text-[11px] mt-0.5 line-clamp-2" style={{ color: "var(--gc-muted-dark)" }}>
                     <MapPin size={11} className="shrink-0 mt-0.5" /> {a.address}
                   </p>
                   <span
@@ -203,7 +203,7 @@ export default function Cart() {
                     aria-label={t.remove}
                     className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full hover:bg-black/5 transition"
                   >
-                    <X size={12} color="#8A8271" />
+                    <X size={12} color="var(--gc-muted)" />
                   </span>
                 </button>
               );
@@ -212,7 +212,7 @@ export default function Cart() {
         </div>
       )}
 
-      <div className="rounded-2xl p-4 mb-4 bg-white flex flex-col gap-2.5" style={{ border: "1px solid var(--gc-border)" }}>
+      <div className="rounded-2xl p-4 mb-4 bg-(--gc-surface) flex flex-col gap-2.5" style={{ border: "1px solid var(--gc-border)" }}>
         <p className="text-sm font-bold" style={{ color: "var(--gc-charcoal)" }}>{t.deliveryInfo}</p>
         <input
           value={fullName}
@@ -249,7 +249,7 @@ export default function Cart() {
             <LocateFixed size={18} color="#fff" className={locating ? "animate-pulse" : ""} />
           </button>
         </div>
-        <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer" style={{ color: "#6B6455" }}>
+        <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer" style={{ color: "var(--gc-muted-dark)" }}>
           <input
             type="checkbox"
             checked={saveThisAddress}
@@ -262,12 +262,12 @@ export default function Cart() {
       </div>
 
       {currentUser && maxUsablePoints > 0 && (
-        <div className="rounded-2xl p-4 mb-4 bg-white flex flex-col gap-2.5" style={{ border: "1px solid var(--gc-border)" }}>
+        <div className="rounded-2xl p-4 mb-4 bg-(--gc-surface) flex flex-col gap-2.5" style={{ border: "1px solid var(--gc-border)" }}>
           <div className="flex items-center justify-between gap-2">
             <p className="flex items-center gap-1.5 text-sm font-bold" style={{ color: "var(--gc-charcoal)" }}>
               <Gift size={15} color="var(--gc-mango-dark)" /> {t.loyaltyPoints}
             </p>
-            <span className="text-xs font-semibold" style={{ color: "#8A8271" }}>{t.pointsAvailable(loyaltyPoints)}</span>
+            <span className="text-xs font-semibold" style={{ color: "var(--gc-muted)" }}>{t.pointsAvailable(loyaltyPoints)}</span>
           </div>
           <div className="flex items-center gap-2.5">
             <input
@@ -280,12 +280,12 @@ export default function Cart() {
             />
             <span className="w-14 shrink-0 text-right text-sm font-bold" style={{ color: "var(--gc-charcoal)" }}>{safePointsToUse}</span>
           </div>
-          <p className="text-[11px]" style={{ color: "#8A8271" }}>{t.maxPointsHint(maxUsablePoints)}</p>
+          <p className="text-[11px]" style={{ color: "var(--gc-muted)" }}>{t.maxPointsHint(maxUsablePoints)}</p>
         </div>
       )}
 
       <div className="rounded-2xl p-4" style={{ background: "var(--gc-cream-2)" }}>
-        <div className="flex justify-between text-sm mb-1.5" style={{ color: "#6B6455" }}>
+        <div className="flex justify-between text-sm mb-1.5" style={{ color: "var(--gc-muted-dark)" }}>
           <span>{t.subtotal}</span>
           <span>{formatMoney(cartTotal, lang, t)}</span>
         </div>
