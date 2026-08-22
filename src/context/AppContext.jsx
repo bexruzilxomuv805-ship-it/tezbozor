@@ -143,23 +143,29 @@ export function AppProvider({ children }) {
     // user: { name, email, password }
     try {
       const res = await fetch(`${API_BASE}/users`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...user, role: "user" }) });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        return { ok: false, error: data.error === "Email already registered" ? t.emailTaken : t.registerFailed };
+      }
       const created = await res.json();
       setCurrentUser(created);
       return { ok: true, user: created };
     } catch (e) {
       return { ok: false, error: t.registerFailed };
     }
-  }, [API_BASE, t.registerFailed]);
+  }, [API_BASE, t.registerFailed, t.emailTaken]);
 
   const login = useCallback(async (email, password) => {
     try {
-      const res = await fetch(`${API_BASE}/users?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`);
-      const list = await res.json();
-      if (Array.isArray(list) && list.length > 0) {
-        setCurrentUser(list[0]);
-        return { ok: true, user: list[0] };
-      }
-      return { ok: false, error: t.loginFailed };
+      const res = await fetch(`${API_BASE}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!res.ok) return { ok: false, error: t.loginFailed };
+      const user = await res.json();
+      setCurrentUser(user);
+      return { ok: true, user };
     } catch (e) {
       return { ok: false, error: t.loginFailed };
     }

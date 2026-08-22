@@ -16,6 +16,10 @@ export default function Register() {
   const submit = async (e) => {
     e.preventDefault();
     setError(null);
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      setError(t?.fieldsRequired || 'Please fill in all fields');
+      return;
+    }
     setLoading(true);
     try {
       const res = await register({ name, email, password });

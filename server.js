@@ -30,6 +30,29 @@ function generateId() {
   return crypto.randomBytes(8).toString("base64url");
 }
 
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const hash = crypto.scryptSync(password, salt, 64).toString("hex");
+  return `${salt}:${hash}`;
+}
+
+function verifyPassword(password, stored) {
+  const [salt, hash] = (stored || "").split(":");
+  if (!salt || !hash) return false;
+  const check = crypto.scryptSync(password, salt, 64).toString("hex");
+  const a = Buffer.from(hash, "hex");
+  const b = Buffer.from(check, "hex");
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+// Strip the password (hash, or the legacy plaintext field from before hashing existed)
+// before a user document ever goes back over the wire.
+function toSafeUser(doc) {
+  if (!doc) return doc;
+  const { passwordHash, password, ...rest } = doc;
+  return toApi(rest);
+}
+
 // Every document is stored with _id set to the same string id the frontend already
 // works with (not an ObjectId) — these two helpers keep the wire format identical to
 // what json-server used to return, so the React app needed zero changes.
@@ -75,9 +98,90 @@ function collectionRoutes(name) {
   });
 }
 
-for (const name of ["products", "orders", "reviews", "users"]) {
+for (const name of ["products", "orders", "reviews"]) {
   collectionRoutes(name);
 }
+
+// Users get their own routes instead of collectionRoutes(): passwords must be hashed on
+// write and stripped from every response, and registration needs an email-uniqueness check
+// that the generic POST handler doesn't do.
+const users = () => db.collection("users");
+
+app.get("/users", async (req, res) => {
+  const filter = { ...req.query };
+  delete filter.password;
+  const docs = await users().find(filter).toArray();
+  res.json(docs.map(toSafeUser));
+});
+
+app.get("/users/:id", async (req, res) => {
+  const doc = await users().findOne({ _id: req.params.id });
+  if (!doc) return res.status(404).json({ error: "Not found" });
+  res.json(toSafeUser(doc));
+});
+
+app.post("/users", async (req, res) => {
+  const { id, password, ...fields } = req.body || {};
+  if (!fields.email || !password) {
+    return res.status(400).json({ error: "Email and password are required" });
+  }
+  const existing = await users().findOne({ email: fields.email });
+  if (existing) {
+    return res.status(409).json({ error: "Email already registered" });
+  }
+  const _id = id || generateId();
+  const doc = { _id, ...fields, passwordHash: hashPassword(password) };
+  await users().insertOne(doc);
+  res.json(toSafeUser(doc));
+});
+
+app.put("/users/:id", async (req, res) => {
+  const { id: _id, password, ...fields } = req.body || {};
+  const existing = await users().findOne({ _id: req.params.id });
+  const doc = { _id: req.params.id, ...fields };
+  if (password) {
+    doc.passwordHash = hashPassword(password);
+  } else if (existing?.passwordHash) {
+    doc.passwordHash = existing.passwordHash;
+  } else if (existing?.password) {
+    // Account not migrated to a hash yet (see /login) — keep the legacy field intact
+    // rather than silently locking the account out on an unrelated edit (e.g. role change).
+    doc.password = existing.password;
+  }
+  await users().replaceOne({ _id: req.params.id }, doc, { upsert: true });
+  res.json(toSafeUser(doc));
+});
+
+app.delete("/users/:id", async (req, res) => {
+  await users().deleteOne({ _id: req.params.id });
+  res.json({ ok: true });
+});
+
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body || {};
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email and password are required" });
+  }
+  const user = await users().findOne({ email });
+  if (!user) return res.status(401).json({ error: "Invalid credentials" });
+
+  let ok = false;
+  if (user.passwordHash) {
+    ok = verifyPassword(password, user.passwordHash);
+  } else if (typeof user.password === "string") {
+    // Legacy account created before password hashing existed — verify against the
+    // plaintext field once, then migrate it to a hash so this only ever happens the once.
+    ok = user.password === password;
+    if (ok) {
+      const passwordHash = hashPassword(password);
+      await users().updateOne({ _id: user._id }, { $set: { passwordHash }, $unset: { password: "" } });
+      user.passwordHash = passwordHash;
+      delete user.password;
+    }
+  }
+  if (!ok) return res.status(401).json({ error: "Invalid credentials" });
+  res.json(toSafeUser(user));
+});
 
 app.get("/", (req, res) => res.json({ ok: true }));
 

@@ -17,6 +17,10 @@ export default function Login() {
   const submit = async (e) => {
     e.preventDefault();
     setError(null);
+    if (!email.trim() || !password.trim() || (isRegister && !name.trim())) {
+      setError(t?.fieldsRequired || 'Please fill in all fields');
+      return;
+    }
     setLoading(true);
     try {
       if (isRegister) {
