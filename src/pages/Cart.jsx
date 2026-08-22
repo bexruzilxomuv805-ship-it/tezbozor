@@ -140,11 +140,10 @@ export default function Cart() {
               className="flex items-center gap-3 p-3 rounded-2xl bg-(--gc-surface)"
               style={{ border: "1px solid var(--gc-border)" }}
             >
-              <div className="w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center shrink-0" style={{ background: style.bg }}>
-                {product?.image ? (
-                  <img src={product.image} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <Icon size={20} color={style.fg} strokeWidth={1.6} />
+              <div className="relative w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center shrink-0" style={{ background: style.bg }}>
+                <Icon size={20} color={style.fg} strokeWidth={1.6} />
+                {product?.image && (
+                  <img src={product.image} alt="" className="absolute inset-0 w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
                 )}
               </div>
               <div className="flex-1 min-w-0">

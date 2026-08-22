@@ -153,11 +153,10 @@ export default function AdminOrders() {
                         const product = products.find((p) => p.id === it.productId);
                         return (
                           <div key={idx} className="flex items-center gap-2.5">
-                            <div className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center shrink-0" style={{ background: style.bg }}>
-                              {product?.image ? (
-                                <img src={product.image} alt="" className="w-full h-full object-cover" />
-                              ) : (
-                                <Icon size={16} color={style.fg} strokeWidth={1.6} />
+                            <div className="relative w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center shrink-0" style={{ background: style.bg }}>
+                              <Icon size={16} color={style.fg} strokeWidth={1.6} />
+                              {product?.image && (
+                                <img src={product.image} alt="" className="absolute inset-0 w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
                               )}
                             </div>
                             <div className="flex-1 min-w-0">

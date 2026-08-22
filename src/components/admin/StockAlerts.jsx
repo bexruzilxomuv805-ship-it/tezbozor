@@ -35,11 +35,10 @@ export default function StockAlerts({ products, lang, t }) {
             const Icon = CAT_ICON[p.category] || CAT_ICON.sabzavot;
             return (
               <div key={p.id} className="flex items-center gap-2.5 rounded-xl p-2.5" style={{ background: "var(--gc-cream-2)" }}>
-                <div className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center shrink-0" style={{ background: style.bg }}>
-                  {p.image ? (
-                    <img src={p.image} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <Icon size={16} color={style.fg} strokeWidth={1.6} />
+                <div className="relative w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center shrink-0" style={{ background: style.bg }}>
+                  <Icon size={16} color={style.fg} strokeWidth={1.6} />
+                  {p.image && (
+                    <img src={p.image} alt="" className="absolute inset-0 w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
                   )}
                 </div>
                 <p className="flex-1 min-w-0 text-xs font-semibold truncate" style={{ color: "var(--gc-charcoal)" }}>

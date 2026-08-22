@@ -92,10 +92,14 @@ export default function ProductCard({ product }) {
       }}
     >
       <div className="relative aspect-square flex items-center justify-center overflow-hidden" style={{ background: style.bg }}>
-        {product.image ? (
-          <img src={product.image} alt={product.name[lang]} className="h-full w-full object-cover" />
-        ) : (
-          <Icon size={42} color={style.fg} strokeWidth={1.6} />
+        <Icon size={42} color={style.fg} strokeWidth={1.6} />
+        {product.image && (
+          <img
+            src={product.image}
+            alt={product.name[lang]}
+            className="absolute inset-0 h-full w-full object-cover"
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
+          />
         )}
         <button
           type="button"

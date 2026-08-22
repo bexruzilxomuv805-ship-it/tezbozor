@@ -161,11 +161,10 @@ export default function AdminProducts() {
                       </td>
                       <td className="px-3 py-2.5">
                         <div className="flex justify-center">
-                          <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center shrink-0" style={{ background: style.bg }}>
-                            {p.image ? (
-                              <img src={p.image} alt="" className="w-full h-full object-cover" />
-                            ) : (
-                              <Icon size={18} color={style.fg} strokeWidth={1.6} />
+                          <div className="relative w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center shrink-0" style={{ background: style.bg }}>
+                            <Icon size={18} color={style.fg} strokeWidth={1.6} />
+                            {p.image && (
+                              <img src={p.image} alt="" className="absolute inset-0 w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
                             )}
                           </div>
                         </div>

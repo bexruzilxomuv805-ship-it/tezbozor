@@ -52,13 +52,12 @@ export default function Receipt({ order }) {
               <div key={idx} className="flex items-center gap-2.5">
                 <div className="relative w-9 h-9 shrink-0">
                   <div
-                    className="w-full h-full rounded-lg overflow-hidden flex items-center justify-center"
+                    className="relative w-full h-full rounded-lg overflow-hidden flex items-center justify-center"
                     style={{ background: cStyle.bg }}
                   >
-                    {product?.image ? (
-                      <img src={product.image} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <Icon size={16} color={cStyle.fg} strokeWidth={1.6} />
+                    <Icon size={16} color={cStyle.fg} strokeWidth={1.6} />
+                    {product?.image && (
+                      <img src={product.image} alt="" className="absolute inset-0 w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
                     )}
                   </div>
                   <span
