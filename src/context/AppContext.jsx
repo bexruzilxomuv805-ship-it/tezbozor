@@ -433,6 +433,10 @@ export function AppProvider({ children }) {
   const cartCount = useMemo(() => new Set(cart.map((i) => i.productId)).size, [cart]);
   const cartTotal = useMemo(() => cart.reduce((s, i) => s + i.unitPrice * i.qty, 0), [cart]);
   const newOrdersCount = useMemo(() => orders.filter((o) => (o.status || "new") === "new").length, [orders]);
+  const notifyRequestsCount = useMemo(
+    () => products.reduce((sum, p) => sum + (p.notifyRequests?.length || 0), 0),
+    [products]
+  );
 
   // try to load data from backend if available
   useEffect(() => {
@@ -533,7 +537,7 @@ export function AppProvider({ children }) {
     API_BASE,
     products, updateProduct, deleteProduct, addProduct, requestStockNotification,
     cart, addToCart, updateCartQty, removeFromCart, cartCount, cartTotal,
-    orders, checkout, checkoutInProgress, lastOrderId, newOrdersCount,
+    orders, checkout, checkoutInProgress, lastOrderId, newOrdersCount, notifyRequestsCount,
     deleteOrder, updateOrderStatus, cancelOrder,
     currentUser, register, login, logout, updateProfileName,
     toast, showToast,

@@ -45,16 +45,23 @@ export default function StockAlerts({ products, lang, t }) {
                 <p className="flex-1 min-w-0 text-xs font-semibold truncate" style={{ color: "var(--gc-charcoal)" }}>
                   {p.name[lang]}
                 </p>
-                <span
-                  className="flex items-center gap-1 shrink-0 px-2 py-1 rounded-full text-[10px] font-bold"
-                  style={{
-                    background: isOut ? "var(--gc-danger-soft)" : "var(--cat-sut-bg)",
-                    color: isOut ? "var(--gc-tomato-dark)" : "var(--gc-mango-dark)",
-                  }}
-                >
-                  <AlertTriangle size={11} />
-                  {isOut ? t.outOfStock : `${t.admin.lowStockBadge} · ${p.stock}`}
-                </span>
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <span
+                    className="flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold"
+                    style={{
+                      background: isOut ? "var(--gc-danger-soft)" : "var(--cat-sut-bg)",
+                      color: isOut ? "var(--gc-tomato-dark)" : "var(--gc-mango-dark)",
+                    }}
+                  >
+                    <AlertTriangle size={11} />
+                    {isOut ? t.outOfStock : `${t.admin.lowStockBadge} · ${p.stock}`}
+                  </span>
+                  {isOut && p.notifyRequests?.length > 0 && (
+                    <span className="text-[10px] font-bold" style={{ color: "var(--gc-mango-dark)" }}>
+                      {t.admin.notifyWaitingCount(p.notifyRequests.length)}
+                    </span>
+                  )}
+                </div>
               </div>
             );
           })}
