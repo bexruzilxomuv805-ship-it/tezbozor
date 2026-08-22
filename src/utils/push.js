@@ -1,3 +1,5 @@
+export const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || "";
+
 export function isPushSupported() {
   return typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window;
 }
@@ -54,6 +56,18 @@ export async function subscribeToPush({ email, apiBase, vapidPublicKey }) {
     });
   }
   return subscription;
+}
+
+// Called on login/app-load, no button press. Only skips when the browser already has a
+// firm answer (a live subscription, or a prior "denied") — otherwise it's the first time
+// this device has been asked, so triggering Notification.requestPermission() here is what
+// shows the browser's native "Allow notifications?" prompt automatically.
+export async function autoSubscribeToPush({ email, apiBase }) {
+  if (!email || !isPushSupported() || !VAPID_PUBLIC_KEY) return;
+  const existing = await getCurrentPushSubscription().catch(() => null);
+  if (existing) return;
+  if (Notification.permission === "denied") return;
+  await subscribeToPush({ email, apiBase, vapidPublicKey: VAPID_PUBLIC_KEY }).catch(() => {});
 }
 
 export async function unsubscribeFromPush({ email, apiBase }) {

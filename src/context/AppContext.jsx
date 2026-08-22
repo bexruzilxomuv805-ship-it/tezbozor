@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { T, LANGS } from "../i18n/translations";
 import { INITIAL_PRODUCTS } from "../data/products";
 import { earnedPoints, discountForPoints, POINT_VALUE } from "../utils/loyalty";
+import { autoSubscribeToPush } from "../utils/push";
 
 const AppContext = createContext(null);
 
@@ -511,6 +512,11 @@ export function AppProvider({ children }) {
   useEffect(() => {
     try { if (currentUser) localStorage.setItem("currentUser", JSON.stringify(currentUser)); else localStorage.removeItem("currentUser"); } catch (e) {}
   }, [currentUser]);
+  // Ask for push permission right on login/app-load instead of making the customer find a
+  // button in Profile — see src/utils/push.js for why this doesn't re-nag once decided.
+  useEffect(() => {
+    if (currentUser) autoSubscribeToPush({ email: currentUser.email, apiBase: API_BASE });
+  }, [currentUser, API_BASE]);
   useEffect(() => {
     try { localStorage.setItem("wishlist", JSON.stringify(wishlist)); } catch (e) {}
   }, [wishlist]);
