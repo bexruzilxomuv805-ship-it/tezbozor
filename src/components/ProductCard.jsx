@@ -7,7 +7,7 @@ import Stepper from "./Stepper";
 import ReviewsModal from "./ReviewsModal";
 
 export default function ProductCard({ product }) {
-  const { lang, t, addToCart, currentUser, showToast, wishlist, toggleWishlist, reviews } = useApp();
+  const { lang, t, addToCart, currentUser, showToast, wishlist, toggleWishlist, reviews, requestStockNotification } = useApp();
   const options = useMemo(() => unitOptions(product.baseUnit), [product.baseUnit]);
   const [optionIdx, setOptionIdx] = useState(0);
   const [qty, setQty] = useState(1);
@@ -27,6 +27,8 @@ export default function ProductCard({ product }) {
   const lineTotal = unitPrice * qty;
   const maxQty = Math.floor(product.stock / factor);
   const disabled = product.stock <= 0 || maxQty <= 0;
+  const outOfStock = product.stock <= 0;
+  const notifyRequested = !!currentUser && (product.notifyRequests || []).includes(currentUser.email);
 
   const handleAdd = () => {
     if (!currentUser) {
@@ -50,6 +52,16 @@ export default function ProductCard({ product }) {
     setFlash(true);
     window.clearTimeout(timerRef.current);
     timerRef.current = window.setTimeout(() => setFlash(false), 900);
+  };
+
+  const handleNotifyRequest = () => {
+    if (!currentUser) {
+      showToast(t.notifyLoginRequired, "error");
+      return;
+    }
+    if (notifyRequested) return;
+    requestStockNotification(product.id);
+    showToast(t.notifyRequestSaved, "info");
   };
 
   const handleToggleWishlist = (e) => {
@@ -163,32 +175,50 @@ export default function ProductCard({ product }) {
           <Stepper value={qty} onChange={setQty} min={1} max={Math.max(1, maxQty)} disabled={disabled} />
         </div>
 
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={handleAdd}
-          className="mt-auto w-full overflow-hidden rounded-full px-2 py-2 text-[10.5px] font-extrabold tracking-[-0.01em] transition active:scale-[0.98]"
-          style={{
-            background: disabled ? "var(--gc-border)" : flash ? "var(--gc-forest)" : style.accent,
-            color: disabled ? "var(--gc-muted-light)" : "#fff",
-            boxShadow: disabled ? "none" : "0 8px 16px rgba(27,77,62,0.18)",
-            cursor: disabled ? "not-allowed" : "pointer",
-            whiteSpace: "normal",
-            lineHeight: 1.2,
-          }}
-        >
-          <span className="flex items-center justify-center gap-2 leading-none text-center">
-            {flash ? <Check size={15} /> : <ShoppingCart size={14} />}
-            {flash ? (
-              t.added
-            ) : (
-              <>
-                <span className="inline lg:hidden">{t.addToCart}</span>
-                <span className="hidden lg:inline">{`${t.addToCart} · ${formatMoney(lineTotal, lang, t)}`}</span>
-              </>
-            )}
-          </span>
-        </button>
+        {outOfStock ? (
+          <button
+            type="button"
+            disabled={notifyRequested}
+            onClick={handleNotifyRequest}
+            className="mt-auto w-full overflow-hidden rounded-full px-2 py-2 text-[10.5px] font-extrabold tracking-[-0.01em] transition active:scale-[0.98]"
+            style={{
+              background: notifyRequested ? "var(--gc-cream-2)" : style.accent,
+              color: notifyRequested ? "var(--gc-muted-dark)" : "#fff",
+              cursor: notifyRequested ? "default" : "pointer",
+              whiteSpace: "normal",
+              lineHeight: 1.2,
+            }}
+          >
+            {notifyRequested ? t.notifyRequested : t.notifyWhenInStock}
+          </button>
+        ) : (
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={handleAdd}
+            className="mt-auto w-full overflow-hidden rounded-full px-2 py-2 text-[10.5px] font-extrabold tracking-[-0.01em] transition active:scale-[0.98]"
+            style={{
+              background: disabled ? "var(--gc-border)" : flash ? "var(--gc-forest)" : style.accent,
+              color: disabled ? "var(--gc-muted-light)" : "#fff",
+              boxShadow: disabled ? "none" : "0 8px 16px rgba(27,77,62,0.18)",
+              cursor: disabled ? "not-allowed" : "pointer",
+              whiteSpace: "normal",
+              lineHeight: 1.2,
+            }}
+          >
+            <span className="flex items-center justify-center gap-2 leading-none text-center">
+              {flash ? <Check size={15} /> : <ShoppingCart size={14} />}
+              {flash ? (
+                t.added
+              ) : (
+                <>
+                  <span className="inline lg:hidden">{t.addToCart}</span>
+                  <span className="hidden lg:inline">{`${t.addToCart} · ${formatMoney(lineTotal, lang, t)}`}</span>
+                </>
+              )}
+            </span>
+          </button>
+        )}
       </div>
 
       {reviewsOpen && (

@@ -153,6 +153,11 @@ export default function AdminProducts() {
                           />
                           <span className="text-xs font-bold shrink-0" style={{ color: "var(--gc-muted)" }}>{t.unit[p.baseUnit]}</span>
                         </div>
+                        {zero && p.notifyRequests?.length > 0 && (
+                          <div className="text-[10px] font-bold text-right mt-0.5" style={{ color: "var(--gc-mango-dark)" }}>
+                            {t.admin.notifyWaitingCount(p.notifyRequests.length)}
+                          </div>
+                        )}
                       </td>
                       <td className="px-3 py-2.5">
                         <div className="flex justify-center">

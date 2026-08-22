@@ -382,6 +382,21 @@ export function AppProvider({ children }) {
     });
   }, [API_BASE]);
 
+  // "Notify me" list for an out-of-stock product — stored as an email array directly on the
+  // product record (products already exists as a collection everywhere this app is deployed,
+  // unlike a brand-new top-level db.json collection, which would need a redeploy to appear).
+  const requestStockNotification = useCallback((productId) => {
+    if (!currentUser) return;
+    setProducts((prev) => prev.map((p) => {
+      if (p.id !== productId) return p;
+      const list = p.notifyRequests || [];
+      if (list.includes(currentUser.email)) return p;
+      const next = { ...p, notifyRequests: [...list, currentUser.email] };
+      fetch(`${API_BASE}/products/${p.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(next) }).catch(() => {});
+      return next;
+    }));
+  }, [API_BASE, currentUser]);
+
   const deleteOrder = useCallback((id) => {
     setOrders((prev) => {
       const updated = prev.filter((o) => o.id !== id);
@@ -516,7 +531,7 @@ export function AppProvider({ children }) {
     lang, setLang, t,
     theme, toggleTheme,
     API_BASE,
-    products, updateProduct, deleteProduct, addProduct,
+    products, updateProduct, deleteProduct, addProduct, requestStockNotification,
     cart, addToCart, updateCartQty, removeFromCart, cartCount, cartTotal,
     orders, checkout, checkoutInProgress, lastOrderId, newOrdersCount,
     deleteOrder, updateOrderStatus, cancelOrder,
