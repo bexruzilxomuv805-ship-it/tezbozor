@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Send, CheckCircle2, ChevronDown } from "lucide-react";
+import { Send, CheckCircle2, ChevronDown, Trash2 } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import { formatDate } from "../../utils/units";
 
@@ -8,10 +8,11 @@ function lastMessageOf(ticket) {
 }
 
 export default function AdminSupport() {
-  const { t, lang, supportTickets, sendSupportReply, closeSupportTicket } = useApp();
+  const { t, lang, supportTickets, sendSupportReply, closeSupportTicket, deleteSupportMessage, deleteSupportTicket } = useApp();
   const [filter, setFilter] = useState("all"); // all | open | closed
   const [expandedId, setExpandedId] = useState(null);
   const [replyText, setReplyText] = useState("");
+  const [pendingDelete, setPendingDelete] = useState(null); // { id, name }
 
   const sorted = useMemo(() => {
     const filtered = filter === "all" ? supportTickets : supportTickets.filter((tk) => tk.status === filter);
@@ -72,12 +73,8 @@ export default function AdminSupport() {
               const expanded = expandedId === tk.id;
               return (
                 <div key={tk.id} className="rounded-xl p-3.5" style={{ background: "var(--gc-cream-2)" }}>
-                  <button
-                    type="button"
-                    onClick={() => toggleExpand(tk.id)}
-                    className="w-full flex items-start justify-between gap-3 text-left"
-                  >
-                    <div className="min-w-0">
+                  <div className="w-full flex items-start justify-between gap-3">
+                    <button type="button" onClick={() => toggleExpand(tk.id)} className="flex-1 min-w-0 text-left">
                       <p className="text-sm font-bold truncate" style={{ color: "var(--gc-charcoal)" }}>{tk.userName}</p>
                       <p className="text-[11px] truncate" style={{ color: "var(--gc-muted)" }}>{tk.userEmail}</p>
                       {last && (
@@ -85,7 +82,7 @@ export default function AdminSupport() {
                           {last.from === "admin" ? "→ " : ""}{last.text}
                         </p>
                       )}
-                    </div>
+                    </button>
                     <div className="flex items-center gap-1.5 shrink-0">
                       {needsReply && (
                         <span
@@ -104,9 +101,21 @@ export default function AdminSupport() {
                       >
                         {tk.status === "open" ? t.admin.ticketStatusOpen : t.admin.ticketStatusClosed}
                       </span>
-                      <ChevronDown size={16} color="var(--gc-muted)" style={{ transform: expanded ? "rotate(180deg)" : undefined, transition: "transform 0.15s" }} />
+                      <button
+                        type="button"
+                        onClick={() => setPendingDelete({ id: tk.id, name: tk.userName })}
+                        aria-label={t.admin.delete}
+                        title={t.admin.delete}
+                        className="flex h-6 w-6 items-center justify-center rounded-full"
+                        style={{ background: "var(--gc-danger-soft)" }}
+                      >
+                        <Trash2 size={12} color="var(--gc-tomato-dark)" />
+                      </button>
+                      <button type="button" onClick={() => toggleExpand(tk.id)} aria-label={tk.userName}>
+                        <ChevronDown size={16} color="var(--gc-muted)" style={{ transform: expanded ? "rotate(180deg)" : undefined, transition: "transform 0.15s" }} />
+                      </button>
                     </div>
-                  </button>
+                  </div>
 
                   {expanded && (
                     <div className="mt-3 pt-3 flex flex-col gap-2.5" style={{ borderTop: "1px solid var(--gc-border)" }}>
@@ -114,7 +123,18 @@ export default function AdminSupport() {
                         {tk.messages.map((m, i) => {
                           const mine = m.from === "admin";
                           return (
-                            <div key={i} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                            <div key={i} className={`group flex items-center gap-1.5 ${mine ? "justify-end" : "justify-start"}`}>
+                              {!mine && (
+                                <button
+                                  type="button"
+                                  onClick={() => deleteSupportMessage(tk.id, i)}
+                                  aria-label={t.deleteMessage}
+                                  title={t.deleteMessage}
+                                  className="shrink-0 opacity-0 group-hover:opacity-100 transition flex h-5 w-5 items-center justify-center rounded-full hover:bg-black/5"
+                                >
+                                  <Trash2 size={11} color="var(--gc-muted)" />
+                                </button>
+                              )}
                               <div
                                 className="max-w-[80%] rounded-xl px-3 py-2"
                                 style={{ background: mine ? "var(--gc-forest)" : "var(--gc-surface)", color: mine ? "#fff" : "var(--gc-charcoal)" }}
@@ -124,6 +144,17 @@ export default function AdminSupport() {
                                   {formatDate(m.date, lang)}
                                 </p>
                               </div>
+                              {mine && (
+                                <button
+                                  type="button"
+                                  onClick={() => deleteSupportMessage(tk.id, i)}
+                                  aria-label={t.deleteMessage}
+                                  title={t.deleteMessage}
+                                  className="shrink-0 opacity-0 group-hover:opacity-100 transition flex h-5 w-5 items-center justify-center rounded-full hover:bg-black/5"
+                                >
+                                  <Trash2 size={11} color="var(--gc-muted)" />
+                                </button>
+                              )}
                             </div>
                           );
                         })}
@@ -169,6 +200,48 @@ export default function AdminSupport() {
           </div>
         )}
       </div>
+
+      {pendingDelete && (
+        <div
+          className="fixed inset-0 z-100 flex items-center justify-center p-4"
+          style={{ background: "rgba(43,38,32,0.45)" }}
+          onClick={() => setPendingDelete(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl p-5 bg-(--gc-surface)"
+            style={{ border: "1px solid var(--gc-border)", animation: "modalPop 0.2s ease-out" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-11 h-11 rounded-full flex items-center justify-center mb-3" style={{ background: "var(--gc-danger-soft)" }}>
+              <Trash2 size={19} color="var(--gc-tomato-dark)" />
+            </div>
+            <h3 className="font-display text-lg font-semibold mb-1" style={{ color: "var(--gc-charcoal)" }}>{t.admin.confirmDelete}</h3>
+            <p className="text-sm mb-5" style={{ color: "var(--gc-muted-dark)" }}>{t.admin.confirmDeleteTicket(pendingDelete.name)}</p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setPendingDelete(null)}
+                className="flex-1 py-2.5 rounded-full text-sm font-bold"
+                style={{ background: "var(--gc-cream-2)", color: "var(--gc-muted-dark)" }}
+              >
+                {t.admin.confirmNo}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  deleteSupportTicket(pendingDelete.id);
+                  if (expandedId === pendingDelete.id) setExpandedId(null);
+                  setPendingDelete(null);
+                }}
+                className="flex-1 py-2.5 rounded-full text-sm font-bold text-white"
+                style={{ background: "var(--gc-tomato-dark)" }}
+              >
+                {t.admin.confirmYes}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

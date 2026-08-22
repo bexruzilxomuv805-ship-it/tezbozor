@@ -308,6 +308,28 @@ export function AppProvider({ children }) {
     });
   }, [API_BASE]);
 
+  // Removes one message from a ticket's thread (by its position). Used both by the customer,
+  // to delete a message they sent, and by the admin, for moderation.
+  const deleteSupportMessage = useCallback((ticketId, messageIndex) => {
+    setSupportTickets((prev) => {
+      const idx = prev.findIndex((tk) => tk.id === ticketId);
+      if (idx < 0) return prev;
+      const messages = prev[idx].messages.filter((_, i) => i !== messageIndex);
+      const updated = { ...prev[idx], messages };
+      fetch(`${API_BASE}/supportTickets/${ticketId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updated) }).catch(() => {});
+      const copy = [...prev];
+      copy[idx] = updated;
+      return copy;
+    });
+  }, [API_BASE]);
+
+  // Deletes an entire conversation — the customer clearing their own thread, or the admin
+  // removing it outright. Sending a new message afterward simply starts a fresh ticket.
+  const deleteSupportTicket = useCallback((ticketId) => {
+    setSupportTickets((prev) => prev.filter((tk) => tk.id !== ticketId));
+    fetch(`${API_BASE}/supportTickets/${ticketId}`, { method: "DELETE" }).catch(() => {});
+  }, [API_BASE]);
+
   const closeSupportTicket = useCallback((ticketId) => {
     setSupportTickets((prev) => {
       const idx = prev.findIndex((tk) => tk.id === ticketId);
@@ -712,6 +734,7 @@ export function AppProvider({ children }) {
     savedAddresses, addSavedAddress, deleteSavedAddress,
     supportTickets, myTicket, myTicketUnread, adminUnreadTicketsCount,
     sendSupportMessage, sendSupportReply, closeSupportTicket, markMySupportTicketSeen,
+    deleteSupportMessage, deleteSupportTicket,
   };
 
   return (

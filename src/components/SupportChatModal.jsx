@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { X, Send } from "lucide-react";
+import { X, Send, Trash2 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { formatDate } from "../utils/units";
 
 export default function SupportChatModal({ onClose }) {
-  const { t, lang, myTicket, sendSupportMessage, markMySupportTicketSeen } = useApp();
+  const { t, lang, myTicket, sendSupportMessage, markMySupportTicketSeen, deleteSupportMessage, deleteSupportTicket } = useApp();
   const [text, setText] = useState("");
+  const [confirmingClear, setConfirmingClear] = useState(false);
   const listRef = useRef(null);
 
   useEffect(() => {
@@ -28,6 +29,12 @@ export default function SupportChatModal({ onClose }) {
 
   const messages = myTicket?.messages || [];
 
+  const clearChat = () => {
+    if (myTicket) deleteSupportTicket(myTicket.id);
+    setConfirmingClear(false);
+    onClose();
+  };
+
   return createPortal(
     <div
       className="fixed inset-0 z-100 flex items-center justify-center p-4"
@@ -35,20 +42,33 @@ export default function SupportChatModal({ onClose }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md h-[min(600px,85vh)] flex flex-col rounded-2xl bg-(--gc-surface) overflow-hidden"
+        className="relative w-full max-w-md h-[min(600px,85vh)] flex flex-col rounded-2xl bg-(--gc-surface) overflow-hidden"
         style={{ border: "1px solid var(--gc-border)", animation: "modalPop 0.2s ease-out" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-3 px-5 py-4 shrink-0" style={{ borderBottom: "1px solid var(--gc-border)" }}>
           <h3 className="font-display text-lg font-semibold" style={{ color: "var(--gc-charcoal)" }}>{t.supportChatTitle}</h3>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={t.close}
-            className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-black/5 transition"
-          >
-            <X size={16} color="var(--gc-muted-dark)" />
-          </button>
+          <div className="flex items-center gap-1 shrink-0">
+            {messages.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setConfirmingClear(true)}
+                aria-label={t.clearChat}
+                title={t.clearChat}
+                className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-black/5 transition"
+              >
+                <Trash2 size={15} color="var(--gc-tomato-dark)" />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={t.close}
+              className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-black/5 transition"
+            >
+              <X size={16} color="var(--gc-muted-dark)" />
+            </button>
+          </div>
         </div>
 
         <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2.5">
@@ -58,7 +78,18 @@ export default function SupportChatModal({ onClose }) {
             messages.map((m, i) => {
               const mine = m.from === "user";
               return (
-                <div key={i} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                <div key={i} className={`group flex items-center gap-1.5 ${mine ? "justify-end" : "justify-start"}`}>
+                  {mine && (
+                    <button
+                      type="button"
+                      onClick={() => deleteSupportMessage(myTicket.id, i)}
+                      aria-label={t.deleteMessage}
+                      title={t.deleteMessage}
+                      className="shrink-0 opacity-0 group-hover:opacity-100 transition flex h-6 w-6 items-center justify-center rounded-full hover:bg-black/5"
+                    >
+                      <Trash2 size={12} color="var(--gc-muted)" />
+                    </button>
+                  )}
                   <div
                     className="max-w-[80%] rounded-2xl px-3.5 py-2.5"
                     style={{
@@ -101,6 +132,38 @@ export default function SupportChatModal({ onClose }) {
             <Send size={16} color="#fff" />
           </button>
         </form>
+
+        {confirmingClear && (
+          <div
+            className="absolute inset-0 z-10 flex items-center justify-center p-4"
+            style={{ background: "rgba(43,38,32,0.45)" }}
+            onClick={() => setConfirmingClear(false)}
+          >
+            <div
+              className="w-full max-w-xs rounded-2xl p-5 bg-(--gc-surface)"
+              style={{ border: "1px solid var(--gc-border)", animation: "modalPop 0.2s ease-out" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="text-sm mb-4" style={{ color: "var(--gc-muted-dark)" }}>{t.clearChatBody}</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setConfirmingClear(false)}
+                  className="flex-1 py-2.5 rounded-full text-sm font-bold"
+                  style={{ background: "var(--gc-cream-2)", color: "var(--gc-muted-dark)" }}
+                >
+                  {t.clearChatCancel}
+                </button>
+                <button
+                  onClick={clearChat}
+                  className="flex-1 py-2.5 rounded-full text-sm font-bold text-white"
+                  style={{ background: "var(--gc-tomato-dark)" }}
+                >
+                  {t.clearChatYes}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>,
     document.body
