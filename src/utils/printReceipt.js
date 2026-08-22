@@ -1,6 +1,6 @@
-import { formatMoney, formatDate } from "./units";
+import { formatMoney, formatDate, resolveItemName } from "./units";
 
-export function printReceipt(order, t, lang) {
+export function printReceipt(order, t, lang, products = []) {
   const win = window.open("", "_blank", "width=380,height=640");
   if (!win) return;
 
@@ -8,7 +8,7 @@ export function printReceipt(order, t, lang) {
     .map(
       (it) => `
         <tr>
-          <td style="padding:4px 0;">${escapeHtml(it.name)}<br/><span style="color:#8A8271;font-size:11px;">${escapeHtml(it.optionLabel)} × ${it.qty}</span></td>
+          <td style="padding:4px 0;">${escapeHtml(resolveItemName(it, products, lang))}<br/><span style="color:#8A8271;font-size:11px;">${escapeHtml(it.optionLabel)} × ${it.qty}</span></td>
           <td style="padding:4px 0;text-align:right;white-space:nowrap;">${formatMoney(it.unitPrice * it.qty, lang, t)}</td>
         </tr>`
     )

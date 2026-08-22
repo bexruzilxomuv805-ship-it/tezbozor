@@ -69,7 +69,7 @@ export default function Receipt({ order }) {
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold truncate" style={{ color: "var(--gc-charcoal)" }}>{it.name}</p>
+                  <p className="text-xs font-semibold truncate" style={{ color: "var(--gc-charcoal)" }}>{product ? product.name[lang] : it.name}</p>
                   <p className="text-[11px]" style={{ color: "var(--gc-muted)" }}>{it.optionLabel}</p>
                 </div>
                 <span className="text-xs font-bold font-mono shrink-0" style={{ color: "var(--gc-charcoal)" }}>
@@ -111,7 +111,7 @@ export default function Receipt({ order }) {
 
         <button
           type="button"
-          onClick={() => printReceipt(order, t, lang)}
+          onClick={() => printReceipt(order, t, lang, products)}
           className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-full text-sm font-bold text-white transition active:scale-[0.98]"
           style={{ background: "var(--gc-forest)" }}
         >

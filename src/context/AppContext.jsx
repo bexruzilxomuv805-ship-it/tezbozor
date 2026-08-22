@@ -445,6 +445,21 @@ export function AppProvider({ children }) {
     }).catch(() => {});
   }, [API_BASE]);
 
+  // In-app "it's back!" toast for anyone who asked to be notified — no push/service worker
+  // involved, this just checks on page load whether a product they're waiting on now has
+  // stock, tells them once, then clears their email from that product's wait list.
+  useEffect(() => {
+    if (!currentUser) return;
+    const restocked = products.filter((p) => p.stock > 0 && (p.notifyRequests || []).includes(currentUser.email));
+    if (restocked.length === 0) return;
+    restocked.forEach((p) => {
+      showToast(t.notifyBackInStock(p.name[lang]), "success");
+      const next = { ...p, notifyRequests: (p.notifyRequests || []).filter((e) => e !== currentUser.email) };
+      setProducts((prev) => prev.map((x) => (x.id === p.id ? next : x)));
+      fetch(`${API_BASE}/products/${p.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(next) }).catch(() => {});
+    });
+  }, [products, currentUser, API_BASE, lang, t, showToast]);
+
   // Reviews were localStorage-only before this, so only the browser that wrote one could
   // ever see it — load the shared copy from the backend so every visitor sees every review.
   useEffect(() => {

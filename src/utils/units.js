@@ -18,6 +18,15 @@ export function optionLabel(option, lang, t) {
   return `${option.qty}${u}`;
 }
 
+// Cart/order line items store the product name resolved to a plain string at add-to-cart
+// time, in whatever language was active then — so a language switch afterward left old cart
+// lines and every past order stuck showing that original language. Re-resolve by productId
+// against the live product list (which is always fully translated) whenever it's available.
+export function resolveItemName(item, products, lang) {
+  const product = products.find((p) => p.id === item.productId);
+  return product ? product.name[lang] : item.name;
+}
+
 export function formatMoney(n, lang, t) {
   const rounded = Math.round(n);
   const locale = lang === "ru" ? "ru-RU" : lang === "en" ? "en-US" : "uz-UZ";

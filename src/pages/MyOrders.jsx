@@ -101,7 +101,7 @@ export default function MyOrders() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold truncate" style={{ color: "var(--gc-charcoal)" }}>{it.name}</p>
+                        <p className="text-xs font-semibold truncate" style={{ color: "var(--gc-charcoal)" }}>{product ? product.name[lang] : it.name}</p>
                         <p className="text-[11px]" style={{ color: "var(--gc-muted)" }}>{it.optionLabel} × {it.qty}</p>
                       </div>
                       <span className="text-xs font-bold shrink-0" style={{ color: "var(--gc-charcoal)" }}>

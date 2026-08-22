@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, Trash2, LocateFixed, Loader2, Gift, MapPin, X } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { CAT_STYLE, CAT_ICON } from "../data/categories";
-import { formatMoney } from "../utils/units";
+import { formatMoney, resolveItemName } from "../utils/units";
 import { POINT_VALUE, discountForPoints } from "../utils/loyalty";
 import Stepper from "../components/Stepper";
 
@@ -43,15 +43,16 @@ export default function Cart() {
       if (item.qty <= maxQty) continue;
       if (adjustedRef.current.has(item.key)) continue;
       adjustedRef.current.add(item.key);
+      const itemName = resolveItemName(item, products, lang);
       if (maxQty <= 0) {
         removeFromCart(item.key);
-        showToast(t.cartAdjustedRemoved(item.name), "error");
+        showToast(t.cartAdjustedRemoved(itemName), "error");
       } else {
         updateCartQty(item.key, maxQty);
-        showToast(t.cartAdjustedReduced(item.name, maxQty), "info");
+        showToast(t.cartAdjustedReduced(itemName, maxQty), "info");
       }
     }
-  }, [cart, products, removeFromCart, updateCartQty, showToast, t]);
+  }, [cart, products, lang, removeFromCart, updateCartQty, showToast, t]);
 
   const detectLocation = () => {
     if (!navigator.geolocation) {
@@ -147,7 +148,7 @@ export default function Cart() {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold truncate" style={{ color: "var(--gc-charcoal)" }}>{item.name}</p>
+                <p className="text-sm font-semibold truncate" style={{ color: "var(--gc-charcoal)" }}>{product ? product.name[lang] : item.name}</p>
                 <p className="text-xs" style={{ color: "var(--gc-muted)" }}>
                   {item.optionLabel} · {formatMoney(item.unitPrice, lang, t)}
                 </p>
