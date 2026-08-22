@@ -2,56 +2,10 @@ import http from "http";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import webpush from "web-push";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const UPLOAD_DIR = path.join(__dirname, "public", "uploads");
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-
-// Order-status push notifications. Lives here (not json-server, which can't run
-// custom logic) so it reuses the one small Node server this project already deploys
-// for uploads — see CLAUDE.md and README.md.
-const API_BASE = process.env.API_BASE || "http://localhost:4000";
-const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || "";
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || "";
-const VAPID_SUBJECT = process.env.VAPID_SUBJECT || "mailto:example@example.com";
-const pushConfigured = Boolean(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY);
-if (pushConfigured) {
-  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
-} else {
-  console.warn("VAPID keys not set — /notify will be a no-op until VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY are configured.");
-}
-
-const STATUS_TEXT = {
-  new: "Buyurtmangiz qabul qilindi",
-  preparing: "Buyurtmangiz tayyorlanmoqda",
-  delivering: "Buyurtmangiz yo'lda",
-  delivered: "Buyurtmangiz yetkazildi",
-  cancelled: "Buyurtmangiz bekor qilindi",
-};
-
-async function sendOrderStatusPush(email, status) {
-  if (!pushConfigured || !email) return;
-  const body = STATUS_TEXT[status] || "Buyurtmangiz holati yangilandi";
-  let subs = [];
-  try {
-    const res = await fetch(`${API_BASE}/pushSubscriptions?userEmail=${encodeURIComponent(email)}`);
-    subs = await res.json();
-  } catch (e) {
-    return;
-  }
-  for (const sub of subs) {
-    try {
-      await webpush.sendNotification(sub.subscription, JSON.stringify({ title: "TezBozor", body, url: "/buyurtmalarim" }));
-    } catch (e) {
-      if (e.statusCode === 404 || e.statusCode === 410) {
-        fetch(`${API_BASE}/pushSubscriptions/${sub.id}`, { method: "DELETE" }).catch(() => {});
-      } else {
-        console.error("push send failed:", e.statusCode || e.message);
-      }
-    }
-  }
-}
 
 const MIME_EXT = {
   "image/jpeg": "jpg",
@@ -104,26 +58,6 @@ const server = http.createServer((req, res) => {
     const ext = path.extname(filePath).toLowerCase();
     res.writeHead(200, { "Content-Type": MIME_BY_EXT[ext] || "application/octet-stream" });
     fs.createReadStream(filePath).pipe(res);
-    return;
-  }
-
-  if (req.method === "POST" && req.url === "/notify") {
-    let notifyBody = "";
-    req.on("data", (chunk) => {
-      notifyBody += chunk;
-      if (notifyBody.length > 64 * 1024) req.destroy();
-    });
-    req.on("end", async () => {
-      try {
-        const { email, status } = JSON.parse(notifyBody);
-        await sendOrderStatusPush(email, status);
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ ok: true }));
-      } catch (e) {
-        res.writeHead(400, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Notify failed" }));
-      }
-    });
     return;
   }
 

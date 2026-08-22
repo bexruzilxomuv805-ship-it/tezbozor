@@ -576,19 +576,5 @@
     }
   ],
   "reviews": [],
-  "pushSubscriptions": [
-    {
-      "userEmail": "bexruz_admin@gmail.com",
-      "subscription": {
-        "endpoint": "https://fcm.googleapis.com/fcm/send/ejdMin0yQwc:APA91bHgm87k19_v-yU97l1o1SFc3kfO1yDUDCKW9O8Riv_9XCZ6Trc8tEknpKPrPdSMYhuJTSaT_Jl6TWKv3TvWUe1J56scedUVb74MB8DMMhYFO09G79cyZOMUG76cIWILPdXk5AEK",
-        "expirationTime": null,
-        "keys": {
-          "p256dh": "BArbkS364L_QaGZAevXoZu07O3pcEUQ8Qv2bm7pxJN73rbRH6Pf33Pvj_XPmFcE8giP1EqOiNwwtrPkSSmGPhMo",
-          "auth": "WRnnZKLemvtDJIvzs71KvQ"
-        }
-      },
-      "id": "sTWrPiTn9SQ"
-    }
-  ],
   "$schema": "./node_modules/json-server/schema.json"
 }
