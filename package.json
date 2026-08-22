@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 5176",
     "prestart": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$ports = 4000,4102,5173,5174,5175,5176; Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -in $ports } | ForEach-Object { try { Stop-Process -Id $_.OwningProcess -Force -ErrorAction Stop } catch {} }\"",
-    "start": "concurrently \"npm run dev\" \"json-server --watch db.json --port 4000\" \"node upload-server.js\"",
-    "start:api": "json-server db.json --port ${PORT:-4000} --host 0.0.0.0",
+    "start": "concurrently \"npm run dev\" \"node --env-file=.env.local server.js\" \"node upload-server.js\"",
+    "start:api": "node server.js",
     "start:upload": "node upload-server.js",
     "build": "vite build",
     "lint": "oxlint",
@@ -15,8 +15,10 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
-    "json-server": "^1.0.0-beta.15",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
     "lucide-react": "^1.31.0",
+    "mongodb": "^7.5.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.2",

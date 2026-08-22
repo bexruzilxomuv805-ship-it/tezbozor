@@ -13,10 +13,29 @@ in the background by `fetch`.
 | API (products/orders/users) | `npm install` | `npm run start:api` |
 | Image uploads | `npm install` | `npm run start:upload` |
 
-Both need the **Free** instance type and no environment variables. Note: Render's free tier
-has an ephemeral disk — images uploaded through the admin panel after deploy are lost on
-every restart/redeploy. The seed product images in `public/uploads/` are unaffected since
-they ship as part of the Vercel build, not the Render disk.
+Both need the **Free** instance type. Note: Render's free tier has an ephemeral disk — images
+uploaded through the admin panel after deploy are lost on every restart/redeploy. The seed
+product images in `public/uploads/` are unaffected since they ship as part of the Vercel
+build, not the Render disk.
+
+**The API service stores its data in MongoDB Atlas, not on Render's disk** — this matters
+because Render's free tier restarts the service from a fresh copy of the repo whenever it
+spins down from inactivity, which used to silently wipe any product/order/account added after
+the last deploy (`db.json` reset to whatever was last committed to git). `server.js` replaced
+`json-server` for exactly this reason. It needs one environment variable:
+
+```
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/tezbozor_prod?retryWrites=true&w=majority
+```
+
+Get this from MongoDB Atlas (a separate free account — Atlas's M0 cluster tier is free
+forever, no card/trial expiry) → Database → Connect → Drivers, then add `/tezbozor_prod`
+before the `?` in the connection string to target that database explicitly. Also add
+`0.0.0.0/0` under Network Access → IP Access List so Render (which has no fixed IP on the
+free tier) can reach the cluster — the username/password still guards the actual data.
+`db.json` is no longer read by anything at runtime; it's kept only as a historical seed
+reference. Local development uses a separate `tezbozor_dev` database (see `.env.local`,
+gitignored) so local testing never touches real data.
 
 **2. Frontend — import this repo into Vercel**, then set these Environment Variables
 *before* the first deploy (Vite bakes them into the build, so setting them after a build
