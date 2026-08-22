@@ -13,8 +13,6 @@ function Field({ label, children }) {
   );
 }
 
-const UPLOAD_BASE = import.meta.env.VITE_UPLOAD_BASE || (import.meta.env.DEV ? "http://localhost:4102" : "/api");
-
 export default function ProductEditor({ product, t, onSave, onClose }) {
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
@@ -74,30 +72,37 @@ export default function ProductEditor({ product, t, onSave, onClose }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedUzName]);
 
+  // Stored directly on the product record (in MongoDB) as a compressed data URI, rather than
+  // uploaded to a separate file server — that server's disk is wiped on every Render restart,
+  // which is exactly what silently broke product photos before. Downscaling first keeps the
+  // resulting document small and pages fast, since phone photos are far bigger than a product
+  // thumbnail needs.
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setUploading(true);
     const reader = new FileReader();
-    reader.onload = async () => {
-      setUploading(true);
-      try {
-        const res = await fetch(`${UPLOAD_BASE}/upload`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: form.name.uz || file.name, dataUrl: reader.result }),
-        });
-        const data = await res.json();
-        // Serve freshly-uploaded images from the upload server itself: Vite's dev-server
-        // public-dir passthrough only picks up files present at startup, so a relative
-        // "/uploads/..." path can 404 there for a file written just now.
-        set("image", data.url ? `${UPLOAD_BASE}${data.url}` : reader.result);
-      } catch (err) {
-        // upload server unavailable: fall back to storing the image inline
-        set("image", reader.result);
-      } finally {
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX_DIM = 900;
+        let { width, height } = img;
+        if (width > MAX_DIM || height > MAX_DIM) {
+          const scale = MAX_DIM / Math.max(width, height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        set("image", canvas.toDataURL("image/jpeg", 0.82));
         setUploading(false);
-      }
+      };
+      img.onerror = () => setUploading(false);
+      img.src = reader.result;
     };
+    reader.onerror = () => setUploading(false);
     reader.readAsDataURL(file);
   };
 
