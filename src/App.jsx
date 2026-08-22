@@ -4,6 +4,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import BottomTabBar from "./components/BottomTabBar";
 import SupportWidget from "./components/SupportWidget";
+import InstallAppBanner from "./components/InstallAppBanner";
 import Home from "./pages/Home";
 import Shop from "./pages/Shop";
 import Cart from "./pages/Cart";
@@ -27,6 +28,7 @@ function App() {
     <AppProvider>
       <div className="min-h-screen w-full flex flex-col" style={{ background: "var(--gc-cream)" }}>
         <Header />
+        <InstallAppBanner />
         <main className="flex-1 pb-24 md:pb-28 lg:pb-0">
           <Routes>
             <Route path="/" element={<Home />} />
