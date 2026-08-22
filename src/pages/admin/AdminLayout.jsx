@@ -1,5 +1,5 @@
 import { NavLink, Outlet, Link, Navigate } from "react-router-dom";
-import { LayoutGrid, Package, ClipboardList, ArrowLeft, MessageCircle } from "lucide-react";
+import { LayoutGrid, Package, ClipboardList, ArrowLeft, MessageCircle, Tag } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 
 export default function AdminLayout() {
@@ -65,6 +65,9 @@ export default function AdminLayout() {
                 {adminUnreadTicketsCount}
               </span>
             )}
+          </NavLink>
+          <NavLink to="/admin/promo-kodlar" style={({ isActive }) => tabStyle(isActive)} className="px-3 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 shrink-0">
+            <Tag size={13} /> {t.admin.promoNav}
           </NavLink>
         </div>
       </div>

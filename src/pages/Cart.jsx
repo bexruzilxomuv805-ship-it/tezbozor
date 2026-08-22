@@ -1,16 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, Trash2, LocateFixed, Loader2, Gift, MapPin, X } from "lucide-react";
+import { ShoppingCart, Trash2, LocateFixed, Loader2, Gift, MapPin, X, Tag } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { CAT_STYLE, CAT_ICON } from "../data/categories";
 import { formatMoney, resolveItemName } from "../utils/units";
 import { POINT_VALUE, discountForPoints } from "../utils/loyalty";
+import { computePromoDiscount } from "../utils/promo";
 import Stepper from "../components/Stepper";
+
+const PROMO_ERROR_KEY = {
+  notFound: "promoErrorNotFound",
+  expired: "promoErrorExpired",
+  limitReached: "promoErrorLimitReached",
+  alreadyUsed: "promoErrorAlreadyUsed",
+};
 
 export default function Cart() {
   const {
     cart, lang, t, products, updateCartQty, removeFromCart, cartTotal, cartCount, checkout, checkoutInProgress,
     currentUser, showToast, loyaltyPoints, savedAddresses, addSavedAddress, deleteSavedAddress,
+    appliedPromoCode, applyPromoCode, removePromoCode,
   } = useApp();
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
@@ -20,6 +29,7 @@ export default function Cart() {
   const [pointsToUse, setPointsToUse] = useState(0);
   const [saveThisAddress, setSaveThisAddress] = useState(false);
   const [selectedSavedId, setSelectedSavedId] = useState(null);
+  const [promoInput, setPromoInput] = useState("");
   const adjustedRef = useRef(new Set());
 
   const selectSavedAddress = (a) => {
@@ -29,10 +39,25 @@ export default function Cart() {
     setSelectedSavedId(a.id);
   };
 
-  const maxUsablePoints = Math.max(0, Math.min(loyaltyPoints, Math.floor(cartTotal / POINT_VALUE)));
+  const promoDiscount = appliedPromoCode ? computePromoDiscount(appliedPromoCode, cartTotal) : 0;
+  const afterPromo = Math.max(0, cartTotal - promoDiscount);
+  const maxUsablePoints = Math.max(0, Math.min(loyaltyPoints, Math.floor(afterPromo / POINT_VALUE)));
   const safePointsToUse = Math.min(pointsToUse, maxUsablePoints);
   const pointsDiscount = discountForPoints(safePointsToUse);
-  const finalTotal = Math.max(0, cartTotal - pointsDiscount);
+  const finalTotal = Math.max(0, afterPromo - pointsDiscount);
+
+  const handleApplyPromo = () => {
+    const result = applyPromoCode(promoInput);
+    if (!result.ok) {
+      const message = result.error === "minOrder"
+        ? t.promoErrorMinOrder(formatMoney(result.minOrderAmount, lang, t))
+        : t[PROMO_ERROR_KEY[result.error]] || t.promoErrorNotFound;
+      showToast(message, "error");
+      return;
+    }
+    showToast(t.promoCodeApplied(result.promo.code), "success");
+    setPromoInput("");
+  };
 
   // Auto-check on every visit: clamp/remove cart lines that now exceed available stock
   // (e.g. admin reduced stock after the item was added to the cart).
@@ -261,6 +286,45 @@ export default function Cart() {
         </label>
       </div>
 
+      <div className="rounded-2xl p-4 mb-4 bg-(--gc-surface) flex flex-col gap-2.5" style={{ border: "1px solid var(--gc-border)" }}>
+        <p className="flex items-center gap-1.5 text-sm font-bold" style={{ color: "var(--gc-charcoal)" }}>
+          <Tag size={15} color="var(--gc-leaf)" /> {t.promoCode}
+        </p>
+        {appliedPromoCode ? (
+          <div className="flex items-center justify-between gap-2 rounded-xl px-3.5 py-2.5" style={{ background: "var(--gc-cream-2)" }}>
+            <span className="text-sm font-bold" style={{ color: "var(--gc-forest)" }}>{appliedPromoCode.code}</span>
+            <button
+              type="button"
+              onClick={removePromoCode}
+              className="text-xs font-bold shrink-0"
+              style={{ color: "var(--gc-tomato-dark)" }}
+            >
+              {t.promoCodeRemove}
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <input
+              value={promoInput}
+              onChange={(e) => setPromoInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleApplyPromo(); } }}
+              placeholder={t.promoCodePlaceholder}
+              className="flex-1 min-w-0 px-3.5 py-2.5 rounded-xl text-sm outline-none"
+              style={{ background: "var(--gc-cream-2)", border: "1px solid var(--gc-border)" }}
+            />
+            <button
+              type="button"
+              onClick={handleApplyPromo}
+              disabled={!promoInput.trim()}
+              className="shrink-0 px-4 py-2.5 rounded-xl text-sm font-bold text-white"
+              style={{ background: promoInput.trim() ? "var(--gc-forest)" : "var(--gc-border)", cursor: promoInput.trim() ? "pointer" : "not-allowed" }}
+            >
+              {t.promoCodeApply}
+            </button>
+          </div>
+        )}
+      </div>
+
       {currentUser && maxUsablePoints > 0 && (
         <div className="rounded-2xl p-4 mb-4 bg-(--gc-surface) flex flex-col gap-2.5" style={{ border: "1px solid var(--gc-border)" }}>
           <div className="flex items-center justify-between gap-2">
@@ -289,6 +353,12 @@ export default function Cart() {
           <span>{t.subtotal}</span>
           <span>{formatMoney(cartTotal, lang, t)}</span>
         </div>
+        {promoDiscount > 0 && (
+          <div className="flex justify-between text-sm mb-1.5" style={{ color: "var(--gc-leaf)" }}>
+            <span>{t.promoDiscount}</span>
+            <span>-{formatMoney(promoDiscount, lang, t)}</span>
+          </div>
+        )}
         {pointsDiscount > 0 && (
           <div className="flex justify-between text-sm mb-1.5" style={{ color: "var(--gc-leaf)" }}>
             <span>{t.pointsDiscount}</span>

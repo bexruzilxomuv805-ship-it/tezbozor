@@ -14,6 +14,11 @@ export function printReceipt(order, t, lang, products = []) {
     )
     .join("");
 
+  const promoRow =
+    order.promoDiscount > 0
+      ? `<tr><td style="padding:4px 0;color:#3F8355;">${escapeHtml(t.promoDiscount)}${order.promoCode ? ` (${escapeHtml(order.promoCode)})` : ""}</td><td style="padding:4px 0;text-align:right;color:#3F8355;">-${formatMoney(order.promoDiscount, lang, t)}</td></tr>`
+      : "";
+
   const discountRow =
     order.pointsDiscount > 0
       ? `<tr><td style="padding:4px 0;color:#3F8355;">${escapeHtml(t.pointsDiscount)}</td><td style="padding:4px 0;text-align:right;color:#3F8355;">-${formatMoney(order.pointsDiscount, lang, t)}</td></tr>`
@@ -56,6 +61,7 @@ export function printReceipt(order, t, lang, products = []) {
   <hr />
   <table>
     <tr><td>${escapeHtml(t.subtotal)}</td><td style="text-align:right;">${formatMoney(order.subtotal ?? order.total, lang, t)}</td></tr>
+    ${promoRow}
     ${discountRow}
     <tr class="total"><td>${escapeHtml(t.total)}</td><td style="text-align:right;">${formatMoney(order.total, lang, t)}</td></tr>
   </table>

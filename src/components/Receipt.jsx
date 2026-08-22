@@ -84,6 +84,12 @@ export default function Receipt({ order }) {
             <span>{t.subtotal}</span>
             <span className="font-mono">{formatMoney(order.subtotal ?? order.total, lang, t)}</span>
           </div>
+          {order.promoDiscount > 0 && (
+            <div className="flex justify-between text-xs" style={{ color: "var(--gc-leaf)" }}>
+              <span>{t.promoDiscount}{order.promoCode ? ` (${order.promoCode})` : ""}</span>
+              <span className="font-mono">-{formatMoney(order.promoDiscount, lang, t)}</span>
+            </div>
+          )}
           {order.pointsDiscount > 0 && (
             <div className="flex justify-between text-xs" style={{ color: "var(--gc-leaf)" }}>
               <span>{t.pointsDiscount}</span>

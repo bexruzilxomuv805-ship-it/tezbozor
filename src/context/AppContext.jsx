@@ -2,10 +2,12 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { T, LANGS } from "../i18n/translations";
 import { INITIAL_PRODUCTS } from "../data/products";
 import { earnedPoints, discountForPoints, POINT_VALUE } from "../utils/loyalty";
+import { normalizePromoCode, validatePromoCode, computePromoDiscount } from "../utils/promo";
 
 const AppContext = createContext(null);
 
 let nextProductId = 100;
+let nextPromoId = 100;
 
 // Guards against corrupted/partial product records (e.g. a failed write) ever reaching the UI and crashing it.
 function isValidProduct(p) {
@@ -120,6 +122,14 @@ export function AppProvider({ children }) {
   // One support ticket per customer: a running message thread with the admin team.
   const [supportTickets, setSupportTickets] = useState(() => {
     try { const s = localStorage.getItem("supportTickets"); return s ? JSON.parse(s) : []; } catch (e) { return []; }
+  });
+  const [promoCodes, setPromoCodes] = useState(() => {
+    try { const s = localStorage.getItem("promoCodes"); return s ? JSON.parse(s) : []; } catch (e) { return []; }
+  });
+  // The promo code currently applied in the cart (the full record, not just its string code) —
+  // cleared whenever the cart itself is cleared (checkout, or the customer removes it).
+  const [appliedPromoCode, setAppliedPromoCode] = useState(() => {
+    try { const s = localStorage.getItem("appliedPromoCode"); return s ? JSON.parse(s) : null; } catch (e) { return null; }
   });
 
   const t = T[lang];
@@ -374,6 +384,48 @@ export function AppProvider({ children }) {
     });
   }, [API_BASE, currentUser]);
 
+  // Looks up a typed code against the loaded promo list and validates it against the current
+  // cart/user. On success, stores the full record — checkout() re-validates and reads the
+  // discount from it directly rather than trusting stale state.
+  const applyPromoCode = useCallback((codeInput) => {
+    const code = normalizePromoCode(codeInput);
+    if (!code) return { ok: false, error: "notFound" };
+    const subtotal = cart.reduce((s, i) => s + i.unitPrice * i.qty, 0);
+    const promo = promoCodes.find((p) => p.code === code);
+    const result = validatePromoCode(promo, { subtotal, userEmail: currentUser?.email });
+    if (!result.ok) return result;
+    setAppliedPromoCode(promo);
+    return { ok: true, promo };
+  }, [cart, promoCodes, currentUser]);
+
+  const removePromoCode = useCallback(() => {
+    setAppliedPromoCode(null);
+  }, []);
+
+  const addPromoCode = useCallback((p) => {
+    const local = { ...p, id: String(nextPromoId++), usedCount: 0, usedByEmails: [] };
+    setPromoCodes((prev) => [...prev, local]);
+    fetch(`${API_BASE}/promoCodes`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...p, usedCount: 0, usedByEmails: [] }) })
+      .then((r) => r.json())
+      .then((created) => {
+        setPromoCodes((prev) => prev.map((x) => (x.id === local.id ? created : x)));
+      })
+      .catch(() => {});
+  }, [API_BASE]);
+
+  const updatePromoCode = useCallback((p) => {
+    setPromoCodes((prev) => {
+      const updated = prev.map((x) => (x.id === p.id ? p : x));
+      fetch(`${API_BASE}/promoCodes/${p.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) }).catch(() => {});
+      return updated;
+    });
+  }, [API_BASE]);
+
+  const deletePromoCode = useCallback((id) => {
+    setPromoCodes((prev) => prev.filter((x) => x.id !== id));
+    fetch(`${API_BASE}/promoCodes/${id}`, { method: "DELETE" }).catch(() => {});
+  }, [API_BASE]);
+
   const checkout = useCallback(async ({ fullName, address, phone, pointsToUse = 0 } = {}) => {
     if (checkoutInProgress) return null;
     setCheckoutInProgress(true);
@@ -381,17 +433,29 @@ export function AppProvider({ children }) {
       const prevCart = cart;
       if (!prevCart || prevCart.length === 0) return null;
       const subtotal = prevCart.reduce((s, i) => s + i.unitPrice * i.qty, 0);
+
+      // Re-validate the applied promo code against the live cart/user rather than trusting
+      // whatever was true when it was applied — e.g. it could have expired or hit its usage
+      // limit (from another tab) in the meantime.
+      const promoCheck = appliedPromoCode
+        ? validatePromoCode(appliedPromoCode, { subtotal, userEmail: currentUser?.email })
+        : { ok: false };
+      const promoDiscount = promoCheck.ok ? computePromoDiscount(appliedPromoCode, subtotal) : 0;
+      const afterPromo = Math.max(0, subtotal - promoDiscount);
+
       const availablePoints = currentUser ? (loyaltyPointsMap[currentUser.email] || 0) : 0;
-      const maxUsablePoints = Math.floor(subtotal / POINT_VALUE);
+      const maxUsablePoints = Math.floor(afterPromo / POINT_VALUE);
       const safePointsToUse = Math.max(0, Math.min(pointsToUse, availablePoints, maxUsablePoints));
       const pointsDiscount = discountForPoints(safePointsToUse);
-      const total = Math.max(0, subtotal - pointsDiscount);
+      const total = Math.max(0, afterPromo - pointsDiscount);
       const pointsEarned = earnedPoints(total);
       const id = Date.now().toString();
       const newOrder = {
         id,
         items: prevCart,
         subtotal,
+        promoCode: promoCheck.ok ? appliedPromoCode.code : null,
+        promoDiscount,
         pointsUsed: safePointsToUse,
         pointsDiscount,
         pointsEarned,
@@ -413,9 +477,28 @@ export function AppProvider({ children }) {
       if (existing) {
         // clear cart and return existing id
         setCart([]);
+        setAppliedPromoCode(null);
         setLastOrderId(existing.id);
         return existing.id;
       }
+
+      // record this redemption against the promo code (usage cap + per-user-once check)
+      if (promoCheck.ok) {
+        setPromoCodes((prev) => {
+          const idx = prev.findIndex((p) => p.id === appliedPromoCode.id);
+          if (idx < 0) return prev;
+          const updatedPromo = {
+            ...prev[idx],
+            usedCount: (prev[idx].usedCount || 0) + 1,
+            usedByEmails: currentUser ? [...(prev[idx].usedByEmails || []), currentUser.email] : (prev[idx].usedByEmails || []),
+          };
+          fetch(`${API_BASE}/promoCodes/${updatedPromo.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updatedPromo) }).catch(() => {});
+          const copy = [...prev];
+          copy[idx] = updatedPromo;
+          return copy;
+        });
+      }
+      setAppliedPromoCode(null);
 
       // Decrement product stocks based on cart items (qty * factor)
       setProducts((prevProducts) => {
@@ -465,7 +548,7 @@ export function AppProvider({ children }) {
     } finally {
       setCheckoutInProgress(false);
     }
-  }, [API_BASE, cart, checkoutInProgress, currentUser, loyaltyPointsMap, orders, ordersAreEqual]);
+  }, [API_BASE, cart, checkoutInProgress, currentUser, loyaltyPointsMap, orders, ordersAreEqual, appliedPromoCode]);
 
   // Customers may only cancel while an order is still "new"; admins can cancel at any point
   // before it's delivered (or already cancelled) — see AdminOrders vs MyOrders callers.
@@ -583,6 +666,12 @@ export function AppProvider({ children }) {
   useEffect(() => {
     fetch(`${API_BASE}/products`).then((r) => r.json()).then((data) => {
       if (Array.isArray(data) && data.length > 0) setProducts(data.filter(isValidProduct));
+    }).catch(() => {});
+  }, [API_BASE]);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/promoCodes`).then((r) => r.json()).then((data) => {
+      if (Array.isArray(data)) setPromoCodes(data);
     }).catch(() => {});
   }, [API_BASE]);
 
@@ -730,6 +819,15 @@ export function AppProvider({ children }) {
   useEffect(() => {
     try { localStorage.setItem("supportTickets", JSON.stringify(supportTickets)); } catch (e) {}
   }, [supportTickets]);
+  useEffect(() => {
+    try { localStorage.setItem("promoCodes", JSON.stringify(promoCodes)); } catch (e) {}
+  }, [promoCodes]);
+  useEffect(() => {
+    try {
+      if (appliedPromoCode) localStorage.setItem("appliedPromoCode", JSON.stringify(appliedPromoCode));
+      else localStorage.removeItem("appliedPromoCode");
+    } catch (e) {}
+  }, [appliedPromoCode]);
 
   const loyaltyPoints = currentUser ? (loyaltyPointsMap[currentUser.email] || 0) : 0;
   const savedAddresses = currentUser ? (savedAddressesMap[currentUser.email] || []) : [];
@@ -751,6 +849,8 @@ export function AppProvider({ children }) {
     supportTickets, myTicket, myTicketUnread, adminUnreadTicketsCount,
     sendSupportMessage, sendSupportReply, closeSupportTicket, markMySupportTicketSeen,
     deleteSupportMessage, editSupportMessage, deleteSupportTicket,
+    promoCodes, appliedPromoCode, applyPromoCode, removePromoCode,
+    addPromoCode, updatePromoCode, deletePromoCode,
   };
 
   return (

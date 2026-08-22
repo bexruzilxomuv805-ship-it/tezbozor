@@ -18,6 +18,7 @@ import AdminProducts from "./pages/admin/AdminProducts";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminSupport from "./pages/admin/AdminSupport";
+import AdminPromoCodes from "./pages/admin/AdminPromoCodes";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
@@ -45,6 +46,7 @@ function App() {
               <Route path="buyurtmalar" element={<AdminOrders />} />
               <Route path="foydalanuvchilar" element={<AdminUsers />} />
               <Route path="murojaatlar" element={<AdminSupport />} />
+              <Route path="promo-kodlar" element={<AdminPromoCodes />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
