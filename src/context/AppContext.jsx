@@ -454,27 +454,36 @@ export function AppProvider({ children }) {
     }).catch(() => {});
   }, [API_BASE]);
 
-  // A signed-in user can be blocked by an admin while their session is still open in the
-  // browser (currentUser cached in localStorage) — login already rejects blocked accounts,
-  // but that alone wouldn't affect a tab that signed in before the block happened. Poll their
-  // own record periodically and sign them out the moment it flips.
+  // An admin can block a user, or change their role, while that user's session is still open
+  // in the browser (currentUser cached in localStorage) — neither takes effect on its own,
+  // since currentUser is only ever set at login. Poll the signed-in user's own record
+  // periodically and apply both changes live, so a block signs them out immediately and a
+  // role change (e.g. a promotion to admin) unlocks /admin without a manual re-login.
   useEffect(() => {
     if (!currentUser) return;
     let cancelled = false;
-    const checkBlocked = () => {
+    const syncAccountStatus = () => {
       fetch(`${API_BASE}/users/${currentUser.id}`)
         .then((r) => (r.ok ? r.json() : null))
         .then((u) => {
-          if (cancelled || !u || !u.blocked) return;
-          setCurrentUser(null);
-          showToast(t.accountBlocked, "error");
+          if (cancelled || !u) return;
+          if (u.blocked) {
+            setCurrentUser(null);
+            showToast(t.accountBlocked, "error");
+            return;
+          }
+          setCurrentUser((prev) => {
+            if (!prev || prev.id !== u.id || (prev.role === u.role && prev.name === u.name)) return prev;
+            if (prev.role !== u.role) showToast(t.accountRoleUpdated, "info");
+            return { ...prev, role: u.role, name: u.name };
+          });
         })
         .catch(() => {});
     };
-    checkBlocked();
-    const interval = window.setInterval(checkBlocked, 20000);
+    syncAccountStatus();
+    const interval = window.setInterval(syncAccountStatus, 20000);
     return () => { cancelled = true; window.clearInterval(interval); };
-  }, [currentUser?.id, API_BASE, t.accountBlocked, showToast]);
+  }, [currentUser?.id, API_BASE, t.accountBlocked, t.accountRoleUpdated, showToast]);
 
   // In-app "it's back!" toast for anyone who asked to be notified — no push/service worker
   // involved, this just checks on page load whether a product they're waiting on now has
