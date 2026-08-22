@@ -180,6 +180,7 @@ app.post("/login", async (req, res) => {
     }
   }
   if (!ok) return res.status(401).json({ error: "Invalid credentials" });
+  if (user.blocked) return res.status(403).json({ error: "Account blocked" });
   res.json(toSafeUser(user));
 });
 

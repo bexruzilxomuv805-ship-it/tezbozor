@@ -162,14 +162,17 @@ export function AppProvider({ children }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      if (!res.ok) return { ok: false, error: t.loginFailed };
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        return { ok: false, error: data.error === "Account blocked" ? t.accountBlocked : t.loginFailed };
+      }
       const user = await res.json();
       setCurrentUser(user);
       return { ok: true, user };
     } catch (e) {
       return { ok: false, error: t.loginFailed };
     }
-  }, [API_BASE, t.loginFailed]);
+  }, [API_BASE, t.loginFailed, t.accountBlocked]);
 
   const logout = useCallback(() => {
     setCurrentUser(null);
@@ -450,6 +453,28 @@ export function AppProvider({ children }) {
       if (Array.isArray(data) && data.length > 0) setProducts(data.filter(isValidProduct));
     }).catch(() => {});
   }, [API_BASE]);
+
+  // A signed-in user can be blocked by an admin while their session is still open in the
+  // browser (currentUser cached in localStorage) — login already rejects blocked accounts,
+  // but that alone wouldn't affect a tab that signed in before the block happened. Poll their
+  // own record periodically and sign them out the moment it flips.
+  useEffect(() => {
+    if (!currentUser) return;
+    let cancelled = false;
+    const checkBlocked = () => {
+      fetch(`${API_BASE}/users/${currentUser.id}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((u) => {
+          if (cancelled || !u || !u.blocked) return;
+          setCurrentUser(null);
+          showToast(t.accountBlocked, "error");
+        })
+        .catch(() => {});
+    };
+    checkBlocked();
+    const interval = window.setInterval(checkBlocked, 20000);
+    return () => { cancelled = true; window.clearInterval(interval); };
+  }, [currentUser?.id, API_BASE, t.accountBlocked, showToast]);
 
   // In-app "it's back!" toast for anyone who asked to be notified — no push/service worker
   // involved, this just checks on page load whether a product they're waiting on now has
