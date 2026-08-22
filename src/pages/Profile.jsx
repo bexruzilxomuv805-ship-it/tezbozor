@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { Navigate, Link, useNavigate } from "react-router-dom";
-import { UserCircle2, Gift, MapPin, Heart, ClipboardList, X, LogOut } from "lucide-react";
+import { UserCircle2, Gift, MapPin, Heart, ClipboardList, X, LogOut, Download } from "lucide-react";
 import { useApp } from "../context/AppContext";
+import { useInstallPrompt } from "../hooks/useInstallPrompt";
 
 export default function Profile() {
   const { t, currentUser, updateProfileName, showToast, loyaltyPoints, savedAddresses, deleteSavedAddress, wishlist, logout } = useApp();
   const [name, setName] = useState(currentUser?.name || "");
   const [confirmingLogout, setConfirmingLogout] = useState(false);
   const navigate = useNavigate();
+  const { isIos, canPromptInstall, installAvailable, install } = useInstallPrompt();
 
   if (!currentUser) return <Navigate to="/login" replace />;
 
@@ -60,6 +62,32 @@ export default function Profile() {
         </p>
         <span className="font-display text-lg font-semibold" style={{ color: "var(--gc-charcoal)" }}>{loyaltyPoints}</span>
       </div>
+
+      {installAvailable && (
+        <div className="rounded-2xl p-4 bg-(--gc-surface) flex items-center justify-between gap-3" style={{ border: "1px solid var(--gc-border)" }}>
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--gc-cream-2)" }}>
+              <Download size={18} color="var(--gc-forest)" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold" style={{ color: "var(--gc-charcoal)" }}>{t.installAppTitle}</p>
+              <p className="text-xs truncate" style={{ color: "var(--gc-muted)" }}>
+                {isIos && !canPromptInstall ? t.installAppIosHint : t.installAppBody}
+              </p>
+            </div>
+          </div>
+          {canPromptInstall && (
+            <button
+              type="button"
+              onClick={install}
+              className="shrink-0 px-4 py-2 rounded-full text-xs font-bold text-white"
+              style={{ background: "var(--gc-forest)" }}
+            >
+              {t.installAppButton}
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         <Link

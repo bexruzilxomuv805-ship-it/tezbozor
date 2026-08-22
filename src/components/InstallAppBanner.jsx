@@ -1,64 +1,30 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Download, X } from "lucide-react";
 import { useApp } from "../context/AppContext";
+import { useInstallPrompt } from "../hooks/useInstallPrompt";
 
-function isStandalone() {
-  try {
-    return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-  } catch (e) {
-    return false;
-  }
-}
-
-function isIos() {
-  return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-}
-
-// Purely optional, dismissible nudge toward the PWA install that's already built into this
-// app (see vite.config.js) — never blocks the site, never reappears once closed.
+// Purely optional nudge toward the PWA install that's already built into this app (see
+// vite.config.js) — never blocks the site. Closing it hides it only for this browser session
+// (sessionStorage, not localStorage), so it's back next time the site is opened rather than
+// gone for good — the Profile page also carries a permanent entry point for the same install.
 export default function InstallAppBanner() {
   const { t } = useApp();
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [visible, setVisible] = useState(false);
-  const [platform, setPlatform] = useState(null); // "android" | "ios"
+  const { standalone, isIos, canPromptInstall, installAvailable, install } = useInstallPrompt();
+  const [dismissed, setDismissed] = useState(() => {
+    try { return sessionStorage.getItem("installBannerDismissed") === "true"; } catch (e) { return false; }
+  });
 
-  useEffect(() => {
-    if (isStandalone()) return;
-    try {
-      if (localStorage.getItem("installBannerDismissed") === "true") return;
-    } catch (e) {}
-
-    const handlePrompt = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setPlatform("android");
-      setVisible(true);
-    };
-    window.addEventListener("beforeinstallprompt", handlePrompt);
-
-    // iOS Safari never fires beforeinstallprompt — show the manual "Add to Home Screen" hint instead.
-    if (isIos()) {
-      setPlatform("ios");
-      setVisible(true);
-    }
-
-    return () => window.removeEventListener("beforeinstallprompt", handlePrompt);
-  }, []);
+  if (standalone || dismissed || !installAvailable) return null;
 
   const dismiss = () => {
-    setVisible(false);
-    try { localStorage.setItem("installBannerDismissed", "true"); } catch (e) {}
+    setDismissed(true);
+    try { sessionStorage.setItem("installBannerDismissed", "true"); } catch (e) {}
   };
 
-  const install = async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    setDeferredPrompt(null);
+  const handleInstall = async () => {
+    await install();
     dismiss();
   };
-
-  if (!visible) return null;
 
   return (
     <div
@@ -71,13 +37,13 @@ export default function InstallAppBanner() {
       <div className="flex-1 min-w-0">
         <p className="text-xs font-bold truncate" style={{ color: "var(--gc-charcoal)" }}>{t.installAppTitle}</p>
         <p className="text-[11px] truncate" style={{ color: "var(--gc-muted)" }}>
-          {platform === "ios" ? t.installAppIosHint : t.installAppBody}
+          {isIos && !canPromptInstall ? t.installAppIosHint : t.installAppBody}
         </p>
       </div>
-      {platform === "android" && (
+      {canPromptInstall && (
         <button
           type="button"
-          onClick={install}
+          onClick={handleInstall}
           className="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold text-white"
           style={{ background: "var(--gc-forest)" }}
         >
