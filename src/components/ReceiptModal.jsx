@@ -7,12 +7,12 @@ export default function ReceiptModal({ order, onClose }) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-100 flex items-center justify-center p-4"
+      className="fixed inset-0 z-100 flex items-start justify-center overflow-y-auto p-4 py-8"
       style={{ background: "rgba(43,38,32,0.45)" }}
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm max-h-[90vh] overflow-y-auto overflow-x-hidden flex flex-col gap-3"
+        className="w-full max-w-sm my-auto flex flex-col gap-3"
         style={{ animation: "modalPop 0.2s ease-out" }}
         onClick={(e) => e.stopPropagation()}
       >
