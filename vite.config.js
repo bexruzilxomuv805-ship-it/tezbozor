@@ -11,6 +11,16 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'apple-touch-icon.png'],
+      // push-sw.js adds Web Push 'push'/'notificationclick' handlers to the generated
+      // service worker without switching to the injectManifest strategy.
+      workbox: {
+        importScripts: ['push-sw.js'],
+      },
+      // Without this, vite-plugin-pwa registers no service worker at all under `vite dev`/`npm start` —
+      // push notifications (and offline/installability) would only ever be testable in a built preview.
+      devOptions: {
+        enabled: true,
+      },
       manifest: {
         name: 'TezBozor',
         short_name: 'TezBozor',

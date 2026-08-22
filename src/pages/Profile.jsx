@@ -1,13 +1,40 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, Link, useNavigate } from "react-router-dom";
-import { UserCircle2, Gift, MapPin, Heart, ClipboardList, X, LogOut } from "lucide-react";
+import { UserCircle2, Gift, MapPin, Heart, ClipboardList, X, LogOut, Bell, BellRing } from "lucide-react";
 import { useApp } from "../context/AppContext";
+import { isPushSupported, getCurrentPushSubscription, subscribeToPush } from "../utils/push";
+
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || "";
 
 export default function Profile() {
-  const { t, currentUser, updateProfileName, showToast, loyaltyPoints, savedAddresses, deleteSavedAddress, wishlist, logout } = useApp();
+  const { t, API_BASE, currentUser, updateProfileName, showToast, loyaltyPoints, savedAddresses, deleteSavedAddress, wishlist, logout } = useApp();
   const [name, setName] = useState(currentUser?.name || "");
   const [confirmingLogout, setConfirmingLogout] = useState(false);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let cancelled = false;
+    getCurrentPushSubscription().then((sub) => {
+      if (!cancelled) setPushEnabled(!!sub);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleEnableNotifications = async () => {
+    if (!currentUser || pushBusy) return;
+    setPushBusy(true);
+    try {
+      await subscribeToPush({ email: currentUser.email, apiBase: API_BASE, vapidPublicKey: VAPID_PUBLIC_KEY });
+      setPushEnabled(true);
+      showToast(t.notificationsEnabled, "info");
+    } catch (e) {
+      showToast(e.message === "denied" ? t.notificationsDenied : t.notificationsFailed, "error");
+    } finally {
+      setPushBusy(false);
+    }
+  };
 
   if (!currentUser) return <Navigate to="/login" replace />;
 
@@ -60,6 +87,31 @@ export default function Profile() {
         </p>
         <span className="font-display text-lg font-semibold" style={{ color: "var(--gc-charcoal)" }}>{loyaltyPoints}</span>
       </div>
+
+      {isPushSupported() && (
+        <div className="rounded-2xl p-4 bg-(--gc-surface) flex items-center justify-between gap-3" style={{ border: "1px solid var(--gc-border)" }}>
+          <p className="flex items-center gap-1.5 text-sm font-bold min-w-0" style={{ color: "var(--gc-charcoal)" }}>
+            {pushEnabled ? <BellRing size={16} color="var(--gc-forest)" /> : <Bell size={16} color="var(--gc-muted)" />}
+            <span className="truncate">
+              {t.pushNotifications}
+              <span className="block text-xs font-normal" style={{ color: "var(--gc-muted)" }}>{t.pushNotificationsDesc}</span>
+            </span>
+          </p>
+          {pushEnabled ? (
+            <span className="shrink-0 text-xs font-bold" style={{ color: "var(--gc-forest)" }}>{t.notificationsEnabled}</span>
+          ) : (
+            <button
+              type="button"
+              onClick={handleEnableNotifications}
+              disabled={pushBusy}
+              className="shrink-0 px-4 py-2 rounded-full text-xs font-bold text-white transition active:scale-[0.98]"
+              style={{ background: "var(--gc-forest)", opacity: pushBusy ? 0.6 : 1 }}
+            >
+              {t.enableNotifications}
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         <Link

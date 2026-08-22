@@ -23,6 +23,8 @@ function isValidProduct(p) {
 export function AppProvider({ children }) {
   // Single local JSON Server (db.json: products, users, orders). For production set VITE_API_BASE in .env.
   const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? "http://localhost:4000" : "/api");
+  // Same server upload-server.js runs on — it also exposes /notify for order-status push notifications.
+  const UPLOAD_BASE = import.meta.env.VITE_UPLOAD_BASE || (import.meta.env.DEV ? "http://localhost:4102" : "/api");
 
   const [lang, setLang] = useState(() => {
     try {
@@ -342,6 +344,17 @@ export function AppProvider({ children }) {
     }
   }, [API_BASE, cart, checkoutInProgress, currentUser, loyaltyPointsMap, orders, ordersAreEqual]);
 
+  // Best-effort push notification to the customer when their order's status changes —
+  // handled by upload-server.js's /notify route, not json-server (see CLAUDE.md).
+  const notifyOrderStatus = useCallback((email, status) => {
+    if (!email) return;
+    fetch(`${UPLOAD_BASE}/notify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, status }),
+    }).catch(() => {});
+  }, [UPLOAD_BASE]);
+
   // Customers may only cancel while an order is still "new"; admins can cancel at any point
   // before it's delivered (or already cancelled) — see AdminOrders vs MyOrders callers.
   const cancelOrder = useCallback((id, reason) => {
@@ -350,6 +363,7 @@ export function AppProvider({ children }) {
     const updatedOrder = { ...order, status: "cancelled", cancelReason: reason };
     setOrders((prev) => prev.map((o) => (o.id === id ? updatedOrder : o)));
     fetch(`${API_BASE}/orders/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updatedOrder) }).catch(() => {});
+    notifyOrderStatus(order.customerEmail, "cancelled");
 
     // restore reserved stock back to products
     setProducts((prevProducts) => prevProducts.map((p) => {
@@ -360,7 +374,7 @@ export function AppProvider({ children }) {
       fetch(`${API_BASE}/products/${p.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(next) }).catch(() => {});
       return next;
     }));
-  }, [API_BASE, orders]);
+  }, [API_BASE, orders, notifyOrderStatus]);
 
   const updateOrderStatus = useCallback((id, status) => {
     setOrders((prev) => {
@@ -368,10 +382,11 @@ export function AppProvider({ children }) {
       const order = updated.find((o) => o.id === id);
       if (order) {
         fetch(`${API_BASE}/orders/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(order) }).catch(() => {});
+        notifyOrderStatus(order.customerEmail, status);
       }
       return updated;
     });
-  }, [API_BASE]);
+  }, [API_BASE, notifyOrderStatus]);
 
   const updateProduct = useCallback((p) => {
     setProducts((prev) => {
