@@ -117,6 +117,10 @@ export function AppProvider({ children }) {
   const [savedAddressesMap, setSavedAddressesMap] = useState(() => {
     try { const s = localStorage.getItem("savedAddresses"); return s ? JSON.parse(s) : {}; } catch (e) { return {}; }
   });
+  // One support ticket per customer: a running message thread with the admin team.
+  const [supportTickets, setSupportTickets] = useState(() => {
+    try { const s = localStorage.getItem("supportTickets"); return s ? JSON.parse(s) : []; } catch (e) { return []; }
+  });
 
   const t = T[lang];
 
@@ -257,6 +261,80 @@ export function AppProvider({ children }) {
     });
     return { ok: true };
   }, [currentUser, API_BASE]);
+
+  // Support: one running ticket per customer, rather than a full inbox — matches the
+  // scale of a small storefront and keeps the customer-side UI a single chat thread instead
+  // of a ticket list. A closed ticket reopens automatically the moment the customer writes again.
+  const sendSupportMessage = useCallback((text) => {
+    const trimmed = (text || "").trim();
+    if (!currentUser || !trimmed) return;
+    const message = { from: "user", text: trimmed, date: new Date().toISOString() };
+    setSupportTickets((prev) => {
+      const idx = prev.findIndex((tk) => tk.userEmail === currentUser.email);
+      if (idx >= 0) {
+        const updated = { ...prev[idx], messages: [...prev[idx].messages, message], status: "open", updatedAt: message.date };
+        fetch(`${API_BASE}/supportTickets/${updated.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updated) }).catch(() => {});
+        const copy = [...prev];
+        copy[idx] = updated;
+        return copy;
+      }
+      const ticket = {
+        id: `t-${Date.now()}`,
+        userEmail: currentUser.email,
+        userName: currentUser.name || currentUser.email,
+        status: "open",
+        messages: [message],
+        userLastSeenAt: message.date,
+        createdAt: message.date,
+        updatedAt: message.date,
+      };
+      fetch(`${API_BASE}/supportTickets`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(ticket) }).catch(() => {});
+      return [...prev, ticket];
+    });
+  }, [API_BASE, currentUser]);
+
+  const sendSupportReply = useCallback((ticketId, text) => {
+    const trimmed = (text || "").trim();
+    if (!trimmed) return;
+    setSupportTickets((prev) => {
+      const idx = prev.findIndex((tk) => tk.id === ticketId);
+      if (idx < 0) return prev;
+      const message = { from: "admin", text: trimmed, date: new Date().toISOString() };
+      const updated = { ...prev[idx], messages: [...prev[idx].messages, message], updatedAt: message.date };
+      fetch(`${API_BASE}/supportTickets/${ticketId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updated) }).catch(() => {});
+      const copy = [...prev];
+      copy[idx] = updated;
+      return copy;
+    });
+  }, [API_BASE]);
+
+  const closeSupportTicket = useCallback((ticketId) => {
+    setSupportTickets((prev) => {
+      const idx = prev.findIndex((tk) => tk.id === ticketId);
+      if (idx < 0) return prev;
+      const updated = { ...prev[idx], status: "closed" };
+      fetch(`${API_BASE}/supportTickets/${ticketId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updated) }).catch(() => {});
+      const copy = [...prev];
+      copy[idx] = updated;
+      return copy;
+    });
+  }, [API_BASE]);
+
+  // Marks the customer's own ticket as seen up to now, so the "new reply" badge clears once
+  // they've actually opened the chat — called by the chat modal on open.
+  const markMySupportTicketSeen = useCallback(() => {
+    if (!currentUser) return;
+    setSupportTickets((prev) => {
+      const idx = prev.findIndex((tk) => tk.userEmail === currentUser.email);
+      if (idx < 0) return prev;
+      const now = new Date().toISOString();
+      const updated = { ...prev[idx], userLastSeenAt: now };
+      fetch(`${API_BASE}/supportTickets/${updated.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updated) }).catch(() => {});
+      const copy = [...prev];
+      copy[idx] = updated;
+      return copy;
+    });
+  }, [API_BASE, currentUser]);
 
   const checkout = useCallback(async ({ fullName, address, phone, pointsToUse = 0 } = {}) => {
     if (checkoutInProgress) return null;
@@ -446,6 +524,22 @@ export function AppProvider({ children }) {
     () => products.reduce((sum, p) => sum + (p.notifyRequests?.length || 0), 0),
     [products]
   );
+  const myTicket = useMemo(
+    () => (currentUser ? supportTickets.find((tk) => tk.userEmail === currentUser.email) || null : null),
+    [supportTickets, currentUser]
+  );
+  const myTicketUnread = useMemo(() => {
+    if (!myTicket) return false;
+    const last = myTicket.messages[myTicket.messages.length - 1];
+    return !!last && last.from === "admin" && new Date(last.date) > new Date(myTicket.userLastSeenAt || 0);
+  }, [myTicket]);
+  const adminUnreadTicketsCount = useMemo(
+    () => supportTickets.filter((tk) => {
+      const last = tk.messages[tk.messages.length - 1];
+      return tk.status === "open" && last?.from === "user";
+    }).length,
+    [supportTickets]
+  );
 
   // try to load data from backend if available
   useEffect(() => {
@@ -548,6 +642,19 @@ export function AppProvider({ children }) {
     return () => window.clearInterval(interval);
   }, [API_BASE]);
 
+  // Same polling pattern as orders: admin sees new customer messages, customer sees new
+  // admin replies, without either side needing to refresh.
+  useEffect(() => {
+    const loadTickets = () => {
+      fetch(`${API_BASE}/supportTickets`).then((r) => r.json()).then((data) => {
+        if (Array.isArray(data)) setSupportTickets(data);
+      }).catch(() => {});
+    };
+    loadTickets();
+    const interval = window.setInterval(loadTickets, 15000);
+    return () => window.clearInterval(interval);
+  }, [API_BASE]);
+
   // persist to localStorage whenever data changes
   useEffect(() => {
     try { localStorage.setItem("lang", lang); } catch (e) {}
@@ -582,6 +689,9 @@ export function AppProvider({ children }) {
   useEffect(() => {
     try { localStorage.setItem("savedAddresses", JSON.stringify(savedAddressesMap)); } catch (e) {}
   }, [savedAddressesMap]);
+  useEffect(() => {
+    try { localStorage.setItem("supportTickets", JSON.stringify(supportTickets)); } catch (e) {}
+  }, [supportTickets]);
 
   const loyaltyPoints = currentUser ? (loyaltyPointsMap[currentUser.email] || 0) : 0;
   const savedAddresses = currentUser ? (savedAddressesMap[currentUser.email] || []) : [];
@@ -600,6 +710,8 @@ export function AppProvider({ children }) {
     reviews, addOrUpdateReview,
     loyaltyPoints,
     savedAddresses, addSavedAddress, deleteSavedAddress,
+    supportTickets, myTicket, myTicketUnread, adminUnreadTicketsCount,
+    sendSupportMessage, sendSupportReply, closeSupportTicket, markMySupportTicketSeen,
   };
 
   return (

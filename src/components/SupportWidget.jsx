@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Headset, Send, Megaphone, Phone, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Headset, Send, Megaphone, Phone, X, MessageCircle } from "lucide-react";
 import { useApp } from "../context/AppContext";
+import SupportChatModal from "./SupportChatModal";
 
 const TELEGRAM_USER = "https://t.me/FRONT_END16";
 const TELEGRAM_CHANNEL = "https://t.me/Front_End_pro16";
@@ -34,8 +36,20 @@ function SupportLink({ href, icon, iconBg, iconColor, label, sublabel }) {
 }
 
 export default function SupportWidget() {
-  const { t } = useApp();
+  const { t, currentUser, myTicketUnread, showToast } = useApp();
   const [open, setOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const openChat = () => {
+    setOpen(false);
+    if (!currentUser) {
+      showToast(t.guestSupportBlocked, "error");
+      navigate("/login");
+      return;
+    }
+    setChatOpen(true);
+  };
 
   return (
     <div className="fixed z-60 bottom-24 right-4 lg:bottom-6 lg:right-6">
@@ -61,6 +75,29 @@ export default function SupportWidget() {
               <X size={13} />
             </button>
           </div>
+
+          <button
+            type="button"
+            onClick={openChat}
+            className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-sm font-semibold transition hover:bg-(--gc-cream-2) text-left"
+            style={{ color: "var(--gc-charcoal)" }}
+          >
+            <span
+              className="relative flex h-8 w-8 items-center justify-center rounded-full shrink-0"
+              style={{ background: "var(--cat-sabzavot-bg)", color: "var(--cat-sabzavot-fg)" }}
+            >
+              <MessageCircle size={15} />
+              {myTicketUnread && (
+                <span
+                  className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full"
+                  style={{ background: "var(--gc-tomato)", border: "2px solid var(--gc-surface)" }}
+                />
+              )}
+            </span>
+            <span className="flex flex-col leading-tight min-w-0">
+              <span className="truncate">{t.supportChatButton}</span>
+            </span>
+          </button>
 
           <SupportLink
             href={TELEGRAM_USER}
@@ -104,7 +141,16 @@ export default function SupportWidget() {
           />
         )}
         <span className="relative">{open ? <X size={22} /> : <Headset size={22} />}</span>
+        {!open && myTicketUnread && (
+          <span
+            aria-hidden="true"
+            className="absolute right-0.5 top-0.5 h-3.5 w-3.5 rounded-full"
+            style={{ background: "var(--gc-tomato)", border: "2px solid var(--gc-surface)" }}
+          />
+        )}
       </button>
+
+      {chatOpen && <SupportChatModal onClose={() => setChatOpen(false)} />}
     </div>
   );
 }

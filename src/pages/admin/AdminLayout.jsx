@@ -1,9 +1,9 @@
 import { NavLink, Outlet, Link, Navigate } from "react-router-dom";
-import { LayoutGrid, Package, ClipboardList, ArrowLeft } from "lucide-react";
+import { LayoutGrid, Package, ClipboardList, ArrowLeft, MessageCircle } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 
 export default function AdminLayout() {
-  const { t, currentUser, newOrdersCount, notifyRequestsCount } = useApp();
+  const { t, currentUser, newOrdersCount, notifyRequestsCount, adminUnreadTicketsCount } = useApp();
 
   // redirect non-admins
   if (!currentUser || currentUser.role !== 'admin') {
@@ -54,6 +54,17 @@ export default function AdminLayout() {
           </NavLink>
           <NavLink to="/admin/foydalanuvchilar" style={({ isActive }) => tabStyle(isActive)} className="px-3 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 shrink-0">
             <LayoutGrid size={13} /> {t.admin.users || 'Users'}
+          </NavLink>
+          <NavLink to="/admin/murojaatlar" style={({ isActive }) => tabStyle(isActive)} className="relative px-3 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 shrink-0">
+            <MessageCircle size={13} /> {t.admin.supportNav}
+            {adminUnreadTicketsCount > 0 && (
+              <span
+                className="absolute -right-1.5 -top-1.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full px-1 text-[10px] font-bold text-white"
+                style={{ background: "var(--gc-tomato)" }}
+              >
+                {adminUnreadTicketsCount}
+              </span>
+            )}
           </NavLink>
         </div>
       </div>

@@ -98,7 +98,7 @@ function collectionRoutes(name) {
   });
 }
 
-for (const name of ["products", "orders", "reviews"]) {
+for (const name of ["products", "orders", "reviews", "supportTickets"]) {
   collectionRoutes(name);
 }
 

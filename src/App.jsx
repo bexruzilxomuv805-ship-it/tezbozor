@@ -17,6 +17,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminSupport from "./pages/admin/AdminSupport";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
@@ -43,6 +44,7 @@ function App() {
               <Route path="mahsulotlar" element={<AdminProducts />} />
               <Route path="buyurtmalar" element={<AdminOrders />} />
               <Route path="foydalanuvchilar" element={<AdminUsers />} />
+              <Route path="murojaatlar" element={<AdminSupport />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
