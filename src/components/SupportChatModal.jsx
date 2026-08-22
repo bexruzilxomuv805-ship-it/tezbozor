@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { X, Send, Trash2 } from "lucide-react";
+import { X, Send, Trash2, Pencil, Check } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { formatDate } from "../utils/units";
 
 export default function SupportChatModal({ onClose }) {
-  const { t, lang, myTicket, sendSupportMessage, markMySupportTicketSeen, deleteSupportMessage, deleteSupportTicket } = useApp();
+  const { t, lang, myTicket, sendSupportMessage, markMySupportTicketSeen, deleteSupportMessage, editSupportMessage, deleteSupportTicket } = useApp();
   const [text, setText] = useState("");
   const [confirmingClear, setConfirmingClear] = useState(false);
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [editingText, setEditingText] = useState("");
   const listRef = useRef(null);
 
   useEffect(() => {
@@ -33,6 +35,23 @@ export default function SupportChatModal({ onClose }) {
     if (myTicket) deleteSupportTicket(myTicket.id);
     setConfirmingClear(false);
     onClose();
+  };
+
+  const startEdit = (i, currentText) => {
+    setEditingIndex(i);
+    setEditingText(currentText);
+  };
+
+  const saveEdit = () => {
+    if (editingIndex === null) return;
+    editSupportMessage(myTicket.id, editingIndex, editingText);
+    setEditingIndex(null);
+    setEditingText("");
+  };
+
+  const cancelEdit = () => {
+    setEditingIndex(null);
+    setEditingText("");
   };
 
   return createPortal(
@@ -77,21 +96,45 @@ export default function SupportChatModal({ onClose }) {
           ) : (
             messages.map((m, i) => {
               const mine = m.from === "user";
-              return (
-                <div key={i} className={`group flex items-center gap-1.5 ${mine ? "justify-end" : "justify-start"}`}>
-                  {mine && (
+              const isEditing = editingIndex === i;
+
+              if (isEditing) {
+                return (
+                  <div key={i} className="flex items-center gap-1.5 justify-end">
+                    <input
+                      autoFocus
+                      value={editingText}
+                      onChange={(e) => setEditingText(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") cancelEdit(); }}
+                      className="flex-1 min-w-0 px-3.5 py-2.5 rounded-xl text-sm outline-none"
+                      style={{ background: "var(--gc-cream-2)", border: "1.5px solid var(--gc-forest)" }}
+                    />
                     <button
                       type="button"
-                      onClick={() => deleteSupportMessage(myTicket.id, i)}
-                      aria-label={t.deleteMessage}
-                      title={t.deleteMessage}
-                      className="shrink-0 opacity-0 group-hover:opacity-100 transition flex h-6 w-6 items-center justify-center rounded-full hover:bg-black/5"
+                      onClick={saveEdit}
+                      aria-label={t.saveEdit}
+                      className="shrink-0 flex h-9 w-9 items-center justify-center rounded-full"
+                      style={{ background: "var(--gc-forest)" }}
                     >
-                      <Trash2 size={12} color="var(--gc-muted)" />
+                      <Check size={15} color="#fff" />
                     </button>
-                  )}
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      aria-label={t.cancelEdit}
+                      className="shrink-0 flex h-9 w-9 items-center justify-center rounded-full"
+                      style={{ background: "var(--gc-cream-2)" }}
+                    >
+                      <X size={15} color="var(--gc-muted-dark)" />
+                    </button>
+                  </div>
+                );
+              }
+
+              return (
+                <div key={i} className={`flex flex-col gap-1 ${mine ? "items-end" : "items-start"}`}>
                   <div
-                    className="max-w-[80%] rounded-2xl px-3.5 py-2.5"
+                    className="max-w-[85%] rounded-2xl px-3.5 py-2.5"
                     style={{
                       background: mine ? "var(--gc-forest)" : "var(--gc-cream-2)",
                       color: mine ? "#fff" : "var(--gc-charcoal)",
@@ -101,9 +144,31 @@ export default function SupportChatModal({ onClose }) {
                   >
                     <p className="text-sm whitespace-pre-wrap wrap-break-word">{m.text}</p>
                     <p className="text-[10px] mt-1" style={{ color: mine ? "rgba(255,255,255,0.65)" : "var(--gc-muted)" }}>
-                      {formatDate(m.date, lang)}
+                      {formatDate(m.date, lang)}{m.editedAt ? ` · ${t.editedLabel}` : ""}
                     </p>
                   </div>
+                  {mine && (
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => startEdit(i, m.text)}
+                        aria-label={t.editMessage}
+                        title={t.editMessage}
+                        className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-black/5 transition"
+                      >
+                        <Pencil size={13} color="var(--gc-muted)" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteSupportMessage(myTicket.id, i)}
+                        aria-label={t.deleteMessage}
+                        title={t.deleteMessage}
+                        className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-black/5 transition"
+                      >
+                        <Trash2 size={13} color="var(--gc-muted)" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })

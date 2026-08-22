@@ -308,6 +308,22 @@ export function AppProvider({ children }) {
     });
   }, [API_BASE]);
 
+  // Edits the text of one message the caller wrote themselves (by its position).
+  const editSupportMessage = useCallback((ticketId, messageIndex, newText) => {
+    const trimmed = (newText || "").trim();
+    if (!trimmed) return;
+    setSupportTickets((prev) => {
+      const idx = prev.findIndex((tk) => tk.id === ticketId);
+      if (idx < 0) return prev;
+      const messages = prev[idx].messages.map((m, i) => (i === messageIndex ? { ...m, text: trimmed, editedAt: new Date().toISOString() } : m));
+      const updated = { ...prev[idx], messages };
+      fetch(`${API_BASE}/supportTickets/${ticketId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updated) }).catch(() => {});
+      const copy = [...prev];
+      copy[idx] = updated;
+      return copy;
+    });
+  }, [API_BASE]);
+
   // Removes one message from a ticket's thread (by its position). Used both by the customer,
   // to delete a message they sent, and by the admin, for moderation.
   const deleteSupportMessage = useCallback((ticketId, messageIndex) => {
@@ -734,7 +750,7 @@ export function AppProvider({ children }) {
     savedAddresses, addSavedAddress, deleteSavedAddress,
     supportTickets, myTicket, myTicketUnread, adminUnreadTicketsCount,
     sendSupportMessage, sendSupportReply, closeSupportTicket, markMySupportTicketSeen,
-    deleteSupportMessage, deleteSupportTicket,
+    deleteSupportMessage, editSupportMessage, deleteSupportTicket,
   };
 
   return (

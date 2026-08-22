@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Send, CheckCircle2, ChevronDown, Trash2 } from "lucide-react";
+import { Send, CheckCircle2, ChevronDown, Trash2, Pencil, Check, X } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import { formatDate } from "../../utils/units";
 
@@ -8,11 +8,13 @@ function lastMessageOf(ticket) {
 }
 
 export default function AdminSupport() {
-  const { t, lang, supportTickets, sendSupportReply, closeSupportTicket, deleteSupportMessage, deleteSupportTicket } = useApp();
+  const { t, lang, supportTickets, sendSupportReply, closeSupportTicket, deleteSupportMessage, editSupportMessage, deleteSupportTicket } = useApp();
   const [filter, setFilter] = useState("all"); // all | open | closed
   const [expandedId, setExpandedId] = useState(null);
   const [replyText, setReplyText] = useState("");
   const [pendingDelete, setPendingDelete] = useState(null); // { id, name }
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [editingText, setEditingText] = useState("");
 
   const sorted = useMemo(() => {
     const filtered = filter === "all" ? supportTickets : supportTickets.filter((tk) => tk.status === filter);
@@ -27,6 +29,7 @@ export default function AdminSupport() {
   const toggleExpand = (id) => {
     setExpandedId((prev) => (prev === id ? null : id));
     setReplyText("");
+    setEditingIndex(null);
   };
 
   const submitReply = (id) => {
@@ -34,6 +37,23 @@ export default function AdminSupport() {
     if (!trimmed) return;
     sendSupportReply(id, trimmed);
     setReplyText("");
+  };
+
+  const startEdit = (i, currentText) => {
+    setEditingIndex(i);
+    setEditingText(currentText);
+  };
+
+  const saveEdit = (ticketId) => {
+    if (editingIndex === null) return;
+    editSupportMessage(ticketId, editingIndex, editingText);
+    setEditingIndex(null);
+    setEditingText("");
+  };
+
+  const cancelEdit = () => {
+    setEditingIndex(null);
+    setEditingText("");
   };
 
   return (
@@ -106,12 +126,12 @@ export default function AdminSupport() {
                         onClick={() => setPendingDelete({ id: tk.id, name: tk.userName })}
                         aria-label={t.admin.delete}
                         title={t.admin.delete}
-                        className="flex h-6 w-6 items-center justify-center rounded-full"
+                        className="flex h-8 w-8 items-center justify-center rounded-full shrink-0"
                         style={{ background: "var(--gc-danger-soft)" }}
                       >
-                        <Trash2 size={12} color="var(--gc-tomato-dark)" />
+                        <Trash2 size={13} color="var(--gc-tomato-dark)" />
                       </button>
-                      <button type="button" onClick={() => toggleExpand(tk.id)} aria-label={tk.userName}>
+                      <button type="button" onClick={() => toggleExpand(tk.id)} aria-label={tk.userName} className="flex h-8 w-8 items-center justify-center rounded-full shrink-0">
                         <ChevronDown size={16} color="var(--gc-muted)" style={{ transform: expanded ? "rotate(180deg)" : undefined, transition: "transform 0.15s" }} />
                       </button>
                     </div>
@@ -122,39 +142,74 @@ export default function AdminSupport() {
                       <div className="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1">
                         {tk.messages.map((m, i) => {
                           const mine = m.from === "admin";
-                          return (
-                            <div key={i} className={`group flex items-center gap-1.5 ${mine ? "justify-end" : "justify-start"}`}>
-                              {!mine && (
+                          const isEditing = mine && editingIndex === i;
+
+                          if (isEditing) {
+                            return (
+                              <div key={i} className="flex items-center gap-1.5 justify-end">
+                                <input
+                                  autoFocus
+                                  value={editingText}
+                                  onChange={(e) => setEditingText(e.target.value)}
+                                  onKeyDown={(e) => { if (e.key === "Enter") saveEdit(tk.id); if (e.key === "Escape") cancelEdit(); }}
+                                  className="flex-1 min-w-0 px-3 py-2 rounded-lg text-xs outline-none"
+                                  style={{ background: "var(--gc-surface)", border: "1.5px solid var(--gc-forest)" }}
+                                />
                                 <button
                                   type="button"
-                                  onClick={() => deleteSupportMessage(tk.id, i)}
-                                  aria-label={t.deleteMessage}
-                                  title={t.deleteMessage}
-                                  className="shrink-0 opacity-0 group-hover:opacity-100 transition flex h-5 w-5 items-center justify-center rounded-full hover:bg-black/5"
+                                  onClick={() => saveEdit(tk.id)}
+                                  aria-label={t.saveEdit}
+                                  className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full"
+                                  style={{ background: "var(--gc-forest)" }}
                                 >
-                                  <Trash2 size={11} color="var(--gc-muted)" />
+                                  <Check size={13} color="#fff" />
                                 </button>
-                              )}
+                                <button
+                                  type="button"
+                                  onClick={cancelEdit}
+                                  aria-label={t.cancelEdit}
+                                  className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full"
+                                  style={{ background: "var(--gc-cream-2)" }}
+                                >
+                                  <X size={13} color="var(--gc-muted-dark)" />
+                                </button>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div key={i} className={`flex flex-col gap-1 ${mine ? "items-end" : "items-start"}`}>
                               <div
                                 className="max-w-[80%] rounded-xl px-3 py-2"
                                 style={{ background: mine ? "var(--gc-forest)" : "var(--gc-surface)", color: mine ? "#fff" : "var(--gc-charcoal)" }}
                               >
                                 <p className="text-xs whitespace-pre-wrap wrap-break-word">{m.text}</p>
                                 <p className="text-[10px] mt-1" style={{ color: mine ? "rgba(255,255,255,0.65)" : "var(--gc-muted)" }}>
-                                  {formatDate(m.date, lang)}
+                                  {formatDate(m.date, lang)}{m.editedAt ? ` · ${t.editedLabel}` : ""}
                                 </p>
                               </div>
-                              {mine && (
+                              <div className="flex items-center gap-1">
+                                {mine && (
+                                  <button
+                                    type="button"
+                                    onClick={() => startEdit(i, m.text)}
+                                    aria-label={t.editMessage}
+                                    title={t.editMessage}
+                                    className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-black/5 transition"
+                                  >
+                                    <Pencil size={12} color="var(--gc-muted)" />
+                                  </button>
+                                )}
                                 <button
                                   type="button"
                                   onClick={() => deleteSupportMessage(tk.id, i)}
                                   aria-label={t.deleteMessage}
                                   title={t.deleteMessage}
-                                  className="shrink-0 opacity-0 group-hover:opacity-100 transition flex h-5 w-5 items-center justify-center rounded-full hover:bg-black/5"
+                                  className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-black/5 transition"
                                 >
-                                  <Trash2 size={11} color="var(--gc-muted)" />
+                                  <Trash2 size={12} color="var(--gc-muted)" />
                                 </button>
-                              )}
+                              </div>
                             </div>
                           );
                         })}
