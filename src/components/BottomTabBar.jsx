@@ -3,12 +3,12 @@ import { NavLink } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 
 export default function BottomTabBar() {
-  const { cartCount, currentUser, t, newOrdersCount, wishlist } = useApp();
+  const { cartCount, currentUser, t, newOrdersCount, adminUnreadTicketsCount, wishlist } = useApp();
 
   const profileTab = !currentUser
     ? { to: "/login", label: t.login, Icon: UserCircle2 }
     : currentUser.role === "admin"
-      ? { to: "/admin", label: t.navAdmin, Icon: LayoutGrid, badge: newOrdersCount }
+      ? { to: "/admin", label: t.navAdmin, Icon: LayoutGrid, badge: newOrdersCount + adminUnreadTicketsCount }
       : { to: "/profil", label: t.profile, Icon: UserCircle2 };
 
   const items = [

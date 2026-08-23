@@ -5,9 +5,10 @@ import { useApp } from "../context/AppContext";
 import { LANGS } from "../i18n/translations";
 
 export default function Header() {
-  const { lang, setLang, t, theme, toggleTheme, cartCount, currentUser, logout, newOrdersCount, wishlist } = useApp();
+  const { lang, setLang, t, theme, toggleTheme, cartCount, currentUser, logout, newOrdersCount, adminUnreadTicketsCount, wishlist } = useApp();
   const navigate = useNavigate();
   const [confirmingLogout, setConfirmingLogout] = useState(false);
+  const adminBadgeCount = newOrdersCount + adminUnreadTicketsCount;
 
   const navLinkClass = ({ isActive }) =>
     "relative flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold transition " +
@@ -32,12 +33,12 @@ export default function Header() {
           {currentUser && currentUser.role === 'admin' && (
             <NavLink to="/admin" className={navLinkClass}>
               <LayoutGrid size={12} /> {t.navAdmin}
-              {newOrdersCount > 0 && (
+              {adminBadgeCount > 0 && (
                 <span
                   className="absolute -right-1.5 -top-1.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full px-1 text-[10px] font-bold text-white"
                   style={{ background: "var(--gc-tomato)" }}
                 >
-                  {newOrdersCount}
+                  {adminBadgeCount}
                 </span>
               )}
             </NavLink>
