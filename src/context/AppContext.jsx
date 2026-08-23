@@ -298,7 +298,8 @@ export function AppProvider({ children }) {
       const idx = prev.findIndex((tk) => tk.userEmail === currentUser.email);
       if (idx >= 0) {
         const updated = { ...prev[idx], messages: [...prev[idx].messages, message], status: "open", updatedAt: message.date };
-        fetch(`${API_BASE}/supportTickets/${updated.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updated) }).catch(() => {});
+        fetchWithRetry(`${API_BASE}/supportTickets/${updated.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updated) })
+          .then((res) => { if (!res) showToast(t.admin.saveFailedRetry, "error"); });
         const copy = [...prev];
         copy[idx] = updated;
         return copy;
@@ -313,10 +314,11 @@ export function AppProvider({ children }) {
         createdAt: message.date,
         updatedAt: message.date,
       };
-      fetch(`${API_BASE}/supportTickets`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(ticket) }).catch(() => {});
+      fetchWithRetry(`${API_BASE}/supportTickets`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(ticket) })
+        .then((res) => { if (!res) showToast(t.admin.saveFailedRetry, "error"); });
       return [...prev, ticket];
     });
-  }, [API_BASE, currentUser]);
+  }, [API_BASE, currentUser, showToast, t.admin.saveFailedRetry]);
 
   const sendSupportReply = useCallback((ticketId, text) => {
     const trimmed = (text || "").trim();
@@ -326,12 +328,13 @@ export function AppProvider({ children }) {
       if (idx < 0) return prev;
       const message = { from: "admin", text: trimmed, date: new Date().toISOString() };
       const updated = { ...prev[idx], messages: [...prev[idx].messages, message], updatedAt: message.date };
-      fetch(`${API_BASE}/supportTickets/${ticketId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updated) }).catch(() => {});
+      fetchWithRetry(`${API_BASE}/supportTickets/${ticketId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updated) })
+        .then((res) => { if (!res) showToast(t.admin.saveFailedRetry, "error"); });
       const copy = [...prev];
       copy[idx] = updated;
       return copy;
     });
-  }, [API_BASE]);
+  }, [API_BASE, showToast, t.admin.saveFailedRetry]);
 
   // Edits the text of one message the caller wrote themselves (by its position).
   const editSupportMessage = useCallback((ticketId, messageIndex, newText) => {
