@@ -9,6 +9,21 @@ const AppContext = createContext(null);
 let nextProductId = 100;
 let nextPromoId = 100;
 
+// Retries a persistence call once after a short delay before giving up — covers a single
+// transient blip (e.g. Render's free tier waking from sleep) that a bare `.catch(() => {})`
+// would otherwise swallow silently, leaving the change looking "saved" in this tab while the
+// server never actually got it.
+async function fetchWithRetry(url, options) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch(url, options);
+      if (res.ok) return res;
+    } catch (e) {}
+    if (attempt === 0) await new Promise((r) => setTimeout(r, 1500));
+  }
+  return null;
+}
+
 // Guards against corrupted/partial product records (e.g. a failed write) ever reaching the UI and crashing it.
 function isValidProduct(p) {
   return (
@@ -582,13 +597,10 @@ export function AppProvider({ children }) {
   }, [API_BASE]);
 
   const updateProduct = useCallback((p) => {
-    setProducts((prev) => {
-      const updated = prev.map((x) => (x.id === p.id ? p : x));
-      // try to persist
-      fetch(`${API_BASE}/products/${p.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) }).catch(() => {});
-      return updated;
-    });
-  }, [API_BASE]);
+    setProducts((prev) => prev.map((x) => (x.id === p.id ? p : x)));
+    fetchWithRetry(`${API_BASE}/products/${p.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) })
+      .then((res) => { if (!res) showToast(t.admin.saveFailedRetry, "error"); });
+  }, [API_BASE, showToast, t.admin.saveFailedRetry]);
 
   // "Notify me" list for an out-of-stock product — stored as an email array directly on the
   // product record (products already exists as a collection everywhere this app is deployed,
@@ -628,13 +640,15 @@ export function AppProvider({ children }) {
     // optimistic add, try to persist to server (server will assign id if available)
     const local = { ...p, id: String(nextProductId++) };
     setProducts((prev) => [...prev, local]);
-    fetch(`${API_BASE}/products`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) })
-      .then((r) => r.json())
-      .then((created) => {
-        setProducts((prev) => prev.map((x) => (x.id === local.id ? created : x)));
+    fetchWithRetry(`${API_BASE}/products`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) })
+      .then((res) => {
+        if (!res) { showToast(t.admin.saveFailedRetry, "error"); return null; }
+        return res.json();
       })
-      .catch(() => {});
-  }, [API_BASE]);
+      .then((created) => {
+        if (created) setProducts((prev) => prev.map((x) => (x.id === local.id ? created : x)));
+      });
+  }, [API_BASE, showToast, t.admin.saveFailedRetry]);
 
   // Count distinct products, not cart lines — the same product added in two
   // different unit variants (e.g. 1kg and 500g) is still one product "type".
