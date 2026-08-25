@@ -8,6 +8,7 @@ export default function AdminUsers() {
   const { t, API_BASE, showToast, currentUser } = useApp();
   const [users, setUsers] = useState([]);
   const [pendingBlock, setPendingBlock] = useState(null); // { id, name, nextBlocked }
+  const [pendingRole, setPendingRole] = useState(null); // { id, name, role }
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -18,9 +19,19 @@ export default function AdminUsers() {
   const safePage = Math.min(page, totalPages);
   const pageItems = users.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
-  const changeRole = (id, role) => {
+  const requestChangeRole = (u, role) => {
+    if (role === (u.role || "user")) return;
+    if (u.id === currentUser?.id) {
+      showToast(t.admin.cannotChangeOwnRole, "error");
+      return;
+    }
+    setPendingRole({ id: u.id, name: u.name || u.email, role });
+  };
+
+  const confirmChangeRole = () => {
+    const { id, role } = pendingRole;
     const user = users.find((u) => u.id === id);
-    if (!user) return;
+    if (!user) { setPendingRole(null); return; }
     const updated = { ...user, role };
     fetch(`${API_BASE}/users/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updated) })
       .then((r) => r.json())
@@ -28,7 +39,8 @@ export default function AdminUsers() {
         setUsers((prev) => prev.map((x) => (x.id === id ? u : x)));
         showToast(t?.admin?.roleUpdated || "Role updated", "info");
       })
-      .catch(() => showToast(t?.errorGeneric || "Xatolik yuz berdi", "error"));
+      .catch(() => showToast(t?.errorGeneric || "Xatolik yuz berdi", "error"))
+      .finally(() => setPendingRole(null));
   };
 
   const requestToggleBlock = (u) => {
@@ -75,7 +87,7 @@ export default function AdminUsers() {
                 <td className="px-3 py-2">{u.name}</td>
                 <td className="px-3 py-2">{u.email}</td>
                 <td className="px-3 py-2">
-                  <select value={u.role || 'user'} onChange={(e) => changeRole(u.id, e.target.value)} className="p-1 border rounded">
+                  <select value={u.role || 'user'} onChange={(e) => requestChangeRole(u, e.target.value)} className="p-1 border rounded">
                     <option value="user">user</option>
                     <option value="admin">admin</option>
                   </select>
@@ -155,6 +167,43 @@ export default function AdminUsers() {
               </button>
               <button
                 onClick={confirmToggleBlock}
+                className="flex-1 py-2.5 rounded-full text-sm font-bold text-white"
+                style={{ background: "var(--gc-tomato-dark)" }}
+              >
+                {t.admin.confirmYes}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pendingRole && (
+        <div
+          className="fixed inset-0 z-100 flex items-center justify-center p-4"
+          style={{ background: "rgba(43,38,32,0.45)" }}
+          onClick={() => setPendingRole(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl p-5 bg-(--gc-surface)"
+            style={{ border: "1px solid var(--gc-border)", animation: "modalPop 0.2s ease-out" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="font-display text-lg font-semibold mb-1" style={{ color: "var(--gc-charcoal)" }}>
+              {t.admin.confirmDelete}
+            </h3>
+            <p className="text-sm mb-5" style={{ color: "var(--gc-muted-dark)" }}>
+              {t.admin.confirmChangeRole(pendingRole.name, pendingRole.role)}
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPendingRole(null)}
+                className="flex-1 py-2.5 rounded-full text-sm font-bold"
+                style={{ background: "var(--gc-cream-2)", color: "var(--gc-muted-dark)" }}
+              >
+                {t.admin.confirmNo}
+              </button>
+              <button
+                onClick={confirmChangeRole}
                 className="flex-1 py-2.5 rounded-full text-sm font-bold text-white"
                 style={{ background: "var(--gc-tomato-dark)" }}
               >

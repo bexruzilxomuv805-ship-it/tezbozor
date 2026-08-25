@@ -21,6 +21,9 @@ export function validatePromoCode(promo, { subtotal, userEmail }) {
 export function computePromoDiscount(promo, subtotal) {
   if (!promo) return 0;
   const raw = promo.type === "percent" ? Math.round(subtotal * (promo.value / 100)) : promo.value;
-  const capped = promo.maxDiscount ? Math.min(raw, promo.maxDiscount) : raw;
+  // maxDiscount is a percent-only concept (caps an otherwise-unbounded % discount) — a fixed
+  // promo's value is already the exact amount to give, so the cap must not apply to it even if
+  // a stale maxDiscount is still sitting on the record from when it was a percent promo.
+  const capped = promo.type === "percent" && promo.maxDiscount ? Math.min(raw, promo.maxDiscount) : raw;
   return Math.max(0, Math.min(capped, subtotal));
 }

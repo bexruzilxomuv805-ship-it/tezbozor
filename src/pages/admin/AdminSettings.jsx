@@ -24,9 +24,9 @@ export default function AdminSettings() {
 
   const save = () => {
     updateSettings({
-      deliveryFee: Number(form.deliveryFee) || 0,
-      freeDeliveryThreshold: Number(form.freeDeliveryThreshold) || 0,
-      minOrderAmount: Number(form.minOrderAmount) || 0,
+      deliveryFee: Math.max(0, Number(form.deliveryFee) || 0),
+      freeDeliveryThreshold: Math.max(0, Number(form.freeDeliveryThreshold) || 0),
+      minOrderAmount: Math.max(0, Number(form.minOrderAmount) || 0),
     });
     showToast(t.admin.settingsSaved, "info");
   };

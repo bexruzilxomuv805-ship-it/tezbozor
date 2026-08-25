@@ -478,6 +478,22 @@ export function AppProvider({ children }) {
       // amount, but this is the one place that can't be bypassed by calling checkout() directly.
       if (settings.minOrderAmount > 0 && subtotal < settings.minOrderAmount) return null;
 
+      // Re-check live stock against the cart — Cart.jsx clamps cart lines as stock drops, but
+      // that's a client-side effect that can lag a fast admin edit landing right before this
+      // click. Without this, the stock decrement below silently floors at 0 while the order
+      // still records the full (unavailable) quantity, i.e. overselling.
+      const neededByProduct = new Map();
+      for (const it of prevCart) {
+        neededByProduct.set(it.productId, (neededByProduct.get(it.productId) || 0) + (it.factor || 1) * it.qty);
+      }
+      for (const [productId, needed] of neededByProduct) {
+        const product = products.find((p) => p.id === productId);
+        if (!product || needed > (product.stock || 0)) {
+          showToast(t.checkoutStockChanged, "error");
+          return null;
+        }
+      }
+
       // Re-validate the applied promo code against the live cart/user rather than trusting
       // whatever was true when it was applied — e.g. it could have expired or hit its usage
       // limit (from another tab) in the meantime.
@@ -599,7 +615,7 @@ export function AppProvider({ children }) {
     } finally {
       setCheckoutInProgress(false);
     }
-  }, [API_BASE, cart, checkoutInProgress, currentUser, loyaltyPointsMap, orders, ordersAreEqual, appliedPromoCode, settings]);
+  }, [API_BASE, cart, checkoutInProgress, currentUser, loyaltyPointsMap, orders, ordersAreEqual, appliedPromoCode, settings, products, showToast, t.checkoutStockChanged]);
 
   // Customers may only cancel while an order is still "new"; admins can cancel at any point
   // before it's delivered (or already cancelled) — see AdminOrders vs MyOrders callers.
@@ -654,6 +670,7 @@ export function AppProvider({ children }) {
   }, [API_BASE, currentUser]);
 
   const deleteOrder = useCallback((id) => {
+    const order = orders.find((o) => o.id === id);
     setOrders((prev) => {
       const updated = prev.filter((o) => o.id !== id);
       // try to remove from orders server if available
@@ -662,7 +679,21 @@ export function AppProvider({ children }) {
       setLastOrderId((prevId) => (prevId === id ? null : prevId));
       return updated;
     });
-  }, [API_BASE]);
+
+    // Restore stock reserved for this order, same as cancelOrder — unless it was already
+    // cancelled (stock already restored then) or delivered (goods are gone, not "in stock"
+    // to give back). Otherwise deleting an active order permanently loses that stock.
+    if (order && !["delivered", "cancelled"].includes(order.status || "new")) {
+      setProducts((prevProducts) => prevProducts.map((p) => {
+        const itemsForP = order.items.filter((it) => it.productId === p.id);
+        if (itemsForP.length === 0) return p;
+        const restore = itemsForP.reduce((s, it) => s + (it.factor || 1) * it.qty, 0);
+        const next = { ...p, stock: (p.stock || 0) + restore };
+        fetch(`${API_BASE}/products/${p.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(next) }).catch(() => {});
+        return next;
+      }));
+    }
+  }, [API_BASE, orders]);
 
   const deleteProduct = useCallback((id) => {
     setProducts((prev) => {
@@ -851,8 +882,15 @@ export function AppProvider({ children }) {
     } catch (e) {}
   }, [theme]);
   useEffect(() => {
-    try { localStorage.setItem("products", JSON.stringify(products)); } catch (e) {}
-  }, [products]);
+    try {
+      localStorage.setItem("products", JSON.stringify(products));
+    } catch (e) {
+      // Most commonly a quota overflow from embedded product-image data URIs (see
+      // ProductEditor.jsx) — every future product edit would otherwise silently fail to
+      // persist locally with no indication why, so surface it once here instead.
+      showToast(t.admin.localStorageQuotaExceeded, "error");
+    }
+  }, [products, showToast, t.admin.localStorageQuotaExceeded]);
   useEffect(() => {
     try { localStorage.setItem("cart", JSON.stringify(cart)); } catch (e) {}
   }, [cart]);

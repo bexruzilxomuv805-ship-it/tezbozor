@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, Trash2, LocateFixed, Loader2, Gift, MapPin, X, Tag } from "lucide-react";
 import { useApp } from "../context/AppContext";
@@ -30,7 +30,6 @@ export default function Cart() {
   const [saveThisAddress, setSaveThisAddress] = useState(false);
   const [selectedSavedId, setSelectedSavedId] = useState(null);
   const [promoInput, setPromoInput] = useState("");
-  const adjustedRef = useRef(new Set());
 
   // Stock is one shared pool per product across all its unit-option lines (see cartReservedQty
   // in units.js) — the cap for THIS line is the stock left after every OTHER line for the same
@@ -76,15 +75,16 @@ export default function Cart() {
     setPromoInput("");
   };
 
-  // Auto-check on every visit: clamp/remove cart lines that now exceed available stock
-  // (e.g. admin reduced stock after the item was added to the cart).
+  // Auto-check on every visit and every stock update: clamp/remove cart lines that now exceed
+  // available stock (e.g. admin reduced stock after the item was added to the cart, possibly
+  // more than once while this page stays open). Relies on `item.qty <= maxQty` to converge —
+  // once a line is clamped down to maxQty, this loop naturally stops touching it again until
+  // stock drops further.
   useEffect(() => {
     for (const item of cart) {
       const product = products.find((p) => p.id === item.productId);
       const maxQty = product ? maxQtyForLine(item, product) : 0;
       if (item.qty <= maxQty) continue;
-      if (adjustedRef.current.has(item.key)) continue;
-      adjustedRef.current.add(item.key);
       const itemName = resolveItemName(item, products, lang);
       if (maxQty <= 0) {
         removeFromCart(item.key);

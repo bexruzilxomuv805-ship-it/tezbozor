@@ -25,6 +25,10 @@ export default function Register() {
       setError(t?.passwordMismatch || 'Passwords do not match');
       return;
     }
+    if (password.length < 6) {
+      setError(t?.passwordTooShort || 'Password must be at least 6 characters');
+      return;
+    }
     setLoading(true);
     try {
       const res = await register({ name, email, password });

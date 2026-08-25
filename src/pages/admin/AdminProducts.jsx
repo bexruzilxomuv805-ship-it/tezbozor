@@ -133,8 +133,9 @@ export default function AdminProducts() {
                       <td className="px-3 py-2.5 text-right">
                         <input
                           type="number"
+                          min="0"
                           value={p.price}
-                          onChange={(e) => updateProduct({ ...p, price: Number(e.target.value) })}
+                          onChange={(e) => updateProduct({ ...p, price: Math.max(0, Number(e.target.value) || 0) })}
                           className="admin-input text-right"
                           style={{ width: 90 }}
                         />
@@ -143,8 +144,9 @@ export default function AdminProducts() {
                         <div className="flex items-center justify-end gap-1.5">
                           <input
                             type="number"
+                            min="0"
                             value={p.stock}
-                            onChange={(e) => updateProduct({ ...p, stock: Number(e.target.value) })}
+                            onChange={(e) => updateProduct({ ...p, stock: Math.max(0, Number(e.target.value) || 0) })}
                             className="admin-input text-right"
                             style={{
                               width: 64,
