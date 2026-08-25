@@ -24,6 +24,11 @@ export function printReceipt(order, t, lang, products = []) {
       ? `<tr><td style="padding:4px 0;color:#3F8355;">${escapeHtml(t.pointsDiscount)}</td><td style="padding:4px 0;text-align:right;color:#3F8355;">-${formatMoney(order.pointsDiscount, lang, t)}</td></tr>`
       : "";
 
+  const deliveryFeeRow =
+    order.deliveryFee > 0
+      ? `<tr><td style="padding:4px 0;">${escapeHtml(t.deliveryFeeLine)}</td><td style="padding:4px 0;text-align:right;">${formatMoney(order.deliveryFee, lang, t)}</td></tr>`
+      : "";
+
   const html = `<!doctype html>
 <html>
 <head>
@@ -63,6 +68,7 @@ export function printReceipt(order, t, lang, products = []) {
     <tr><td>${escapeHtml(t.subtotal)}</td><td style="text-align:right;">${formatMoney(order.subtotal ?? order.total, lang, t)}</td></tr>
     ${promoRow}
     ${discountRow}
+    ${deliveryFeeRow}
     <tr class="total"><td>${escapeHtml(t.total)}</td><td style="text-align:right;">${formatMoney(order.total, lang, t)}</td></tr>
   </table>
   <div class="thanks">${escapeHtml(t.receiptThanks)}</div>

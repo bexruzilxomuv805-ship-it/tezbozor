@@ -96,6 +96,12 @@ export default function Receipt({ order }) {
               <span className="font-mono">-{formatMoney(order.pointsDiscount, lang, t)}</span>
             </div>
           )}
+          {order.deliveryFee > 0 && (
+            <div className="flex justify-between text-xs" style={{ color: "var(--gc-muted-dark)" }}>
+              <span>{t.deliveryFeeLine}</span>
+              <span className="font-mono">{formatMoney(order.deliveryFee, lang, t)}</span>
+            </div>
+          )}
           <div
             className="flex justify-between text-base font-bold mt-1 pt-2"
             style={{ color: "var(--gc-charcoal)", borderTop: "1px dashed var(--gc-border)" }}

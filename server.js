@@ -98,7 +98,10 @@ function collectionRoutes(name) {
   });
 }
 
-for (const name of ["products", "orders", "reviews", "supportTickets", "promoCodes"]) {
+// "settings" is a single-document collection (id "main") holding site-wide checkout rules —
+// delivery fee, free-delivery threshold, minimum order amount — editable from the admin panel.
+// The generic collectionRoutes() already upserts on PUT, so no dedicated route is needed.
+for (const name of ["products", "orders", "reviews", "supportTickets", "promoCodes", "settings"]) {
   collectionRoutes(name);
 }
 

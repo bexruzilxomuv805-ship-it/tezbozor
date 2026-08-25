@@ -19,7 +19,7 @@ export default function Cart() {
   const {
     cart, lang, t, products, updateCartQty, removeFromCart, cartTotal, cartCount, checkout, checkoutInProgress,
     currentUser, showToast, loyaltyPoints, savedAddresses, addSavedAddress, deleteSavedAddress,
-    appliedPromoCode, applyPromoCode, removePromoCode,
+    appliedPromoCode, applyPromoCode, removePromoCode, settings,
   } = useApp();
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
@@ -55,7 +55,13 @@ export default function Cart() {
   const maxUsablePoints = Math.max(0, Math.min(loyaltyPoints, Math.floor(afterPromo / POINT_VALUE)));
   const safePointsToUse = Math.min(pointsToUse, maxUsablePoints);
   const pointsDiscount = discountForPoints(safePointsToUse);
-  const finalTotal = Math.max(0, afterPromo - pointsDiscount);
+  const goodsTotal = Math.max(0, afterPromo - pointsDiscount);
+  // Mirrors the same rule checkout() applies server-side-of-truth — see AppContext.jsx.
+  const qualifiesForFreeDelivery = settings.freeDeliveryThreshold > 0 && cartTotal >= settings.freeDeliveryThreshold;
+  const deliveryFee = qualifiesForFreeDelivery ? 0 : (settings.deliveryFee || 0);
+  const finalTotal = goodsTotal + deliveryFee;
+  const belowMinOrder = settings.minOrderAmount > 0 && cartTotal < settings.minOrderAmount;
+  const amountToFreeDelivery = settings.freeDeliveryThreshold > 0 ? Math.max(0, settings.freeDeliveryThreshold - cartTotal) : 0;
 
   const handleApplyPromo = () => {
     const result = applyPromoCode(promoInput);
@@ -126,6 +132,10 @@ export default function Cart() {
     }
     if (!fullName.trim() || !address.trim() || !phone.trim()) {
       showToast(t.deliveryInfoRequired, "error");
+      return;
+    }
+    if (belowMinOrder) {
+      showToast(t.minOrderRequired(formatMoney(settings.minOrderAmount, lang, t)), "error");
       return;
     }
 
@@ -376,15 +386,33 @@ export default function Cart() {
             <span>-{formatMoney(pointsDiscount, lang, t)}</span>
           </div>
         )}
+        {settings.deliveryFee > 0 && (
+          <div className="flex justify-between text-sm mb-1.5" style={{ color: "var(--gc-muted-dark)" }}>
+            <span>{t.deliveryFeeLine}</span>
+            <span style={qualifiesForFreeDelivery ? { color: "var(--gc-leaf)", fontWeight: 700 } : undefined}>
+              {qualifiesForFreeDelivery ? t.freeDelivery : formatMoney(deliveryFee, lang, t)}
+            </span>
+          </div>
+        )}
+        {settings.deliveryFee > 0 && amountToFreeDelivery > 0 && (
+          <p className="text-[11px] mb-1.5" style={{ color: "var(--gc-muted)" }}>
+            {t.freeDeliveryHint(formatMoney(amountToFreeDelivery, lang, t))}
+          </p>
+        )}
         <div className="flex justify-between text-lg font-bold mb-4" style={{ color: "var(--gc-charcoal)" }}>
           <span>{t.total}</span>
           <span>{formatMoney(finalTotal, lang, t)}</span>
         </div>
+        {belowMinOrder && (
+          <p className="text-xs font-bold text-center mb-2" style={{ color: "var(--gc-tomato-dark)" }}>
+            {t.minOrderRequired(formatMoney(settings.minOrderAmount, lang, t))}
+          </p>
+        )}
         <button
           onClick={handleCheckout}
-          disabled={checkoutInProgress}
+          disabled={checkoutInProgress || belowMinOrder}
           className="w-full py-3 rounded-full text-sm font-bold text-white flex items-center justify-center gap-2"
-          style={{ background: "var(--gc-forest)", opacity: checkoutInProgress ? 0.7 : 1 }}
+          style={{ background: "var(--gc-forest)", opacity: checkoutInProgress || belowMinOrder ? 0.6 : 1 }}
         >
           {checkoutInProgress && <Loader2 size={16} className="animate-spin" />}
           {t.checkout}

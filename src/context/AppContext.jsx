@@ -146,6 +146,18 @@ export function AppProvider({ children }) {
   const [appliedPromoCode, setAppliedPromoCode] = useState(() => {
     try { const s = localStorage.getItem("appliedPromoCode"); return s ? JSON.parse(s) : null; } catch (e) { return null; }
   });
+  // Site-wide checkout rules the admin controls (Sozlamalar tab) — delivery fee, the subtotal
+  // above which delivery becomes free, and the minimum order subtotal. All default to 0 (no
+  // fee, no free-delivery threshold, no minimum) until an admin actually saves a settings
+  // record, so a fresh deployment never blocks or silently charges anyone.
+  const [settings, setSettings] = useState(() => {
+    try {
+      const s = localStorage.getItem("settings");
+      return s ? JSON.parse(s) : { deliveryFee: 0, freeDeliveryThreshold: 0, minOrderAmount: 0 };
+    } catch (e) {
+      return { deliveryFee: 0, freeDeliveryThreshold: 0, minOrderAmount: 0 };
+    }
+  });
 
   const t = T[lang];
 
@@ -444,6 +456,15 @@ export function AppProvider({ children }) {
     fetch(`${API_BASE}/promoCodes/${id}`, { method: "DELETE" }).catch(() => {});
   }, [API_BASE]);
 
+  const updateSettings = useCallback((next) => {
+    setSettings((prev) => {
+      const updated = { ...prev, ...next };
+      fetchWithRetry(`${API_BASE}/settings/main`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: "main", ...updated }) })
+        .then((res) => { if (!res) showToast(t.admin.saveFailedRetry, "error"); });
+      return updated;
+    });
+  }, [API_BASE, showToast, t.admin.saveFailedRetry]);
+
   const checkout = useCallback(async ({ fullName, address, phone, pointsToUse = 0 } = {}) => {
     if (checkoutInProgress) return null;
     setCheckoutInProgress(true);
@@ -451,6 +472,11 @@ export function AppProvider({ children }) {
       const prevCart = cart;
       if (!prevCart || prevCart.length === 0) return null;
       const subtotal = prevCart.reduce((s, i) => s + i.unitPrice * i.qty, 0);
+
+      // Re-check the minimum order amount against the live cart, same reasoning as the promo
+      // re-validation just below — Cart.jsx already disables the checkout button under this
+      // amount, but this is the one place that can't be bypassed by calling checkout() directly.
+      if (settings.minOrderAmount > 0 && subtotal < settings.minOrderAmount) return null;
 
       // Re-validate the applied promo code against the live cart/user rather than trusting
       // whatever was true when it was applied — e.g. it could have expired or hit its usage
@@ -465,8 +491,14 @@ export function AppProvider({ children }) {
       const maxUsablePoints = Math.floor(afterPromo / POINT_VALUE);
       const safePointsToUse = Math.max(0, Math.min(pointsToUse, availablePoints, maxUsablePoints));
       const pointsDiscount = discountForPoints(safePointsToUse);
-      const total = Math.max(0, afterPromo - pointsDiscount);
-      const pointsEarned = earnedPoints(total);
+      const goodsTotal = Math.max(0, afterPromo - pointsDiscount);
+      // Delivery fee is waived above the admin-configured free-delivery threshold (0 = never
+      // free) and never earns/costs loyalty points — it's a pass-through cost, not a "spend".
+      const deliveryFee = settings.freeDeliveryThreshold > 0 && subtotal >= settings.freeDeliveryThreshold
+        ? 0
+        : (settings.deliveryFee || 0);
+      const total = goodsTotal + deliveryFee;
+      const pointsEarned = earnedPoints(goodsTotal);
       const id = Date.now().toString();
       const newOrder = {
         id,
@@ -477,6 +509,7 @@ export function AppProvider({ children }) {
         pointsUsed: safePointsToUse,
         pointsDiscount,
         pointsEarned,
+        deliveryFee,
         total,
         date: new Date().toISOString(),
         status: "new",
@@ -566,7 +599,7 @@ export function AppProvider({ children }) {
     } finally {
       setCheckoutInProgress(false);
     }
-  }, [API_BASE, cart, checkoutInProgress, currentUser, loyaltyPointsMap, orders, ordersAreEqual, appliedPromoCode]);
+  }, [API_BASE, cart, checkoutInProgress, currentUser, loyaltyPointsMap, orders, ordersAreEqual, appliedPromoCode, settings]);
 
   // Customers may only cancel while an order is still "new"; admins can cancel at any point
   // before it's delivered (or already cancelled) — see AdminOrders vs MyOrders callers.
@@ -689,6 +722,14 @@ export function AppProvider({ children }) {
   useEffect(() => {
     fetch(`${API_BASE}/promoCodes`).then((r) => r.json()).then((data) => {
       if (Array.isArray(data)) setPromoCodes(data);
+    }).catch(() => {});
+  }, [API_BASE]);
+
+  // Single-document settings record (see updateSettings) — a 404 just means no admin has
+  // saved one yet, so the local zero-defaults from useState above are left in place.
+  useEffect(() => {
+    fetch(`${API_BASE}/settings/main`).then((r) => (r.ok ? r.json() : null)).then((data) => {
+      if (data) setSettings((prev) => ({ ...prev, ...data }));
     }).catch(() => {});
   }, [API_BASE]);
 
@@ -845,6 +886,9 @@ export function AppProvider({ children }) {
       else localStorage.removeItem("appliedPromoCode");
     } catch (e) {}
   }, [appliedPromoCode]);
+  useEffect(() => {
+    try { localStorage.setItem("settings", JSON.stringify(settings)); } catch (e) {}
+  }, [settings]);
 
   const loyaltyPoints = currentUser ? (loyaltyPointsMap[currentUser.email] || 0) : 0;
   const savedAddresses = currentUser ? (savedAddressesMap[currentUser.email] || []) : [];
@@ -868,6 +912,7 @@ export function AppProvider({ children }) {
     deleteSupportMessage, editSupportMessage, deleteSupportTicket,
     promoCodes, appliedPromoCode, applyPromoCode, removePromoCode,
     addPromoCode, updatePromoCode, deletePromoCode,
+    settings, updateSettings,
   };
 
   return (
