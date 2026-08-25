@@ -1,15 +1,22 @@
 import { useEffect, useState } from "react";
-import { Ban, CheckCircle2 } from "lucide-react";
+import { Ban, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useApp } from "../../context/AppContext";
+
+const PAGE_SIZE = 5;
 
 export default function AdminUsers() {
   const { t, API_BASE, showToast, currentUser } = useApp();
   const [users, setUsers] = useState([]);
   const [pendingBlock, setPendingBlock] = useState(null); // { id, name, nextBlocked }
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     fetch(`${API_BASE}/users`).then((r) => r.json()).then(setUsers).catch(() => {});
   }, [API_BASE]);
+
+  const totalPages = Math.max(1, Math.ceil(users.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageItems = users.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   const changeRole = (id, role) => {
     const user = users.find((u) => u.id === id);
@@ -62,7 +69,7 @@ export default function AdminUsers() {
             </tr>
           </thead>
           <tbody>
-            {users.map((u) => (
+            {pageItems.map((u) => (
               <tr key={u.id} className="odd:bg-(--gc-surface-alt)">
                 <td className="px-3 py-2">{u.id}</td>
                 <td className="px-3 py-2">{u.name}</td>
@@ -93,6 +100,30 @@ export default function AdminUsers() {
           </tbody>
         </table>
       </div>
+
+      {users.length > PAGE_SIZE && (
+        <div className="flex items-center justify-between px-1 py-3 flex-wrap gap-2">
+          <span className="text-xs font-bold" style={{ color: "var(--gc-muted-dark)" }}>{t.admin.pageOf(safePage, totalPages)}</span>
+          <div className="flex gap-2">
+            <button
+              disabled={safePage <= 1}
+              onClick={() => setPage(safePage - 1)}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold"
+              style={{ background: "var(--gc-surface)", border: "1px solid var(--gc-border)", color: safePage <= 1 ? "var(--gc-muted-light)" : "var(--gc-muted-dark)", cursor: safePage <= 1 ? "not-allowed" : "pointer" }}
+            >
+              <ChevronLeft size={13} /> {t.admin.prevPage}
+            </button>
+            <button
+              disabled={safePage >= totalPages}
+              onClick={() => setPage(safePage + 1)}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold"
+              style={{ background: "var(--gc-surface)", border: "1px solid var(--gc-border)", color: safePage >= totalPages ? "var(--gc-muted-light)" : "var(--gc-muted-dark)", cursor: safePage >= totalPages ? "not-allowed" : "pointer" }}
+            >
+              {t.admin.nextPage} <ChevronRight size={13} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {pendingBlock && (
         <div
