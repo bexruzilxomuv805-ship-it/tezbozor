@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ShoppingCart, Check, Heart, Star } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { CAT_STYLE, CAT_ICON } from "../data/categories";
-import { unitOptions, optionFactor, optionLabel, formatMoney, cartReservedQty } from "../utils/units";
+import { unitOptions, optionFactor, optionLabel, formatMoney, cartReservedQty, productImages } from "../utils/units";
 import Stepper from "./Stepper";
 import ReviewsModal from "./ReviewsModal";
 
@@ -22,6 +22,7 @@ export default function ProductCard({ product }) {
 
   const style = CAT_STYLE[product.category] || CAT_STYLE.sabzavot;
   const Icon = CAT_ICON[product.category] || CAT_ICON.sabzavot;
+  const thumbnail = productImages(product)[0];
   const option = options[optionIdx];
   const factor = optionFactor(product, option);
   const unitPrice = product.price * factor;
@@ -113,9 +114,9 @@ export default function ProductCard({ product }) {
       <Link to={`/mahsulot/${product.id}`} className="contents">
       <div className="relative aspect-square flex items-center justify-center overflow-hidden" style={{ background: style.bg }}>
         <Icon size={42} color={style.fg} strokeWidth={1.6} />
-        {product.image && (
+        {thumbnail && (
           <img
-            src={product.image}
+            src={thumbnail}
             alt={product.name[lang]}
             className="absolute inset-0 h-full w-full object-cover"
             onError={(e) => { e.currentTarget.style.display = "none"; }}

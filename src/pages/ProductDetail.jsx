@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Check, Heart, ShoppingCart, Star } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { CATEGORIES, CAT_ICON, CAT_STYLE } from "../data/categories";
-import { cartReservedQty, formatMoney, optionFactor, optionLabel, unitOptions } from "../utils/units";
+import { cartReservedQty, formatMoney, optionFactor, optionLabel, productImages, unitOptions } from "../utils/units";
 import Stepper from "../components/Stepper";
 import ReviewsModal from "../components/ReviewsModal";
 
@@ -19,7 +19,13 @@ export default function ProductDetail() {
   const [flash, setFlash] = useState(false);
   const [heartAnim, setHeartAnim] = useState(false);
   const [reviewsOpen, setReviewsOpen] = useState(false);
+  const [activeImageIdx, setActiveImageIdx] = useState(0);
   const timerRef = useRef(null);
+
+  const images = useMemo(() => (product ? productImages(product) : []), [product]);
+  // Land back on the first photo whenever the viewed product changes (e.g. following a
+  // "you may also like" link) rather than keeping whatever index the previous product left set.
+  useEffect(() => setActiveImageIdx(0), [product?.id]);
 
   const productReviews = useMemo(
     () => (product ? reviews.filter((r) => r.productId === product.id) : []),
@@ -121,51 +127,72 @@ export default function ProductDetail() {
       </button>
 
       <div className="grid md:grid-cols-2 gap-6">
-        <div className="relative aspect-square rounded-3xl overflow-hidden flex items-center justify-center" style={{ background: style.bg }}>
-          <Icon size={72} color={style.fg} strokeWidth={1.4} />
-          {product.image && (
-            <img
-              src={product.image}
-              alt={product.name[lang]}
-              className="absolute inset-0 h-full w-full object-contain"
-              onError={(e) => { e.currentTarget.style.display = "none"; }}
-            />
-          )}
-          <button
-            type="button"
-            onClick={handleToggleWishlist}
-            aria-label={isWishlisted ? t.removeFromWishlist : t.addToWishlist}
-            title={isWishlisted ? t.removeFromWishlist : t.addToWishlist}
-            className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full shadow-sm transition active:scale-90"
-            style={{ background: "rgba(255,255,255,0.9)" }}
-          >
-            <Heart
-              size={20}
-              strokeWidth={2}
-              color={isWishlisted ? "var(--gc-tomato)" : "var(--gc-muted)"}
-              fill={isWishlisted ? "var(--gc-tomato)" : "transparent"}
-              className={heartAnim ? "animate-heart-pop" : ""}
-            />
-          </button>
-          {product.stock > 0 && (
-            <span
-              className="absolute left-3 top-3 rounded-full px-2.5 py-1 text-xs font-bold"
-              style={
-                product.stock <= 10
-                  ? { background: "var(--cat-sut-bg)", color: "var(--gc-mango-dark)" }
-                  : { background: "var(--gc-forest)", color: "#fff" }
-              }
+        <div className="flex flex-col gap-2.5">
+          <div className="relative aspect-square rounded-3xl overflow-hidden flex items-center justify-center" style={{ background: style.bg }}>
+            <Icon size={72} color={style.fg} strokeWidth={1.4} />
+            {images[activeImageIdx] && (
+              <img
+                src={images[activeImageIdx]}
+                alt={product.name[lang]}
+                className="absolute inset-0 h-full w-full object-contain"
+                onError={(e) => { e.currentTarget.style.display = "none"; }}
+              />
+            )}
+            <button
+              type="button"
+              onClick={handleToggleWishlist}
+              aria-label={isWishlisted ? t.removeFromWishlist : t.addToWishlist}
+              title={isWishlisted ? t.removeFromWishlist : t.addToWishlist}
+              className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full shadow-sm transition active:scale-90"
+              style={{ background: "rgba(255,255,255,0.9)" }}
             >
-              {t.inStock(product.stock)} {t.unit[product.baseUnit]}
-            </span>
-          )}
-          {disabled && (
-            <span
-              className="absolute inset-0 flex items-center justify-center text-sm font-bold text-white"
-              style={{ background: "rgba(43,38,32,0.55)" }}
-            >
-              {t.outOfStock}
-            </span>
+              <Heart
+                size={20}
+                strokeWidth={2}
+                color={isWishlisted ? "var(--gc-tomato)" : "var(--gc-muted)"}
+                fill={isWishlisted ? "var(--gc-tomato)" : "transparent"}
+                className={heartAnim ? "animate-heart-pop" : ""}
+              />
+            </button>
+            {product.stock > 0 && (
+              <span
+                className="absolute left-3 top-3 rounded-full px-2.5 py-1 text-xs font-bold"
+                style={
+                  product.stock <= 10
+                    ? { background: "var(--cat-sut-bg)", color: "var(--gc-mango-dark)" }
+                    : { background: "var(--gc-forest)", color: "#fff" }
+                }
+              >
+                {t.inStock(product.stock)} {t.unit[product.baseUnit]}
+              </span>
+            )}
+            {disabled && (
+              <span
+                className="absolute inset-0 flex items-center justify-center text-sm font-bold text-white"
+                style={{ background: "rgba(43,38,32,0.55)" }}
+              >
+                {t.outOfStock}
+              </span>
+            )}
+          </div>
+
+          {images.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto">
+              {images.map((src, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setActiveImageIdx(idx)}
+                  className="relative w-16 h-16 shrink-0 rounded-xl overflow-hidden transition"
+                  style={{
+                    border: `2px solid ${idx === activeImageIdx ? "var(--gc-forest)" : "var(--gc-border)"}`,
+                    opacity: idx === activeImageIdx ? 1 : 0.7,
+                  }}
+                >
+                  <img src={src} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
           )}
         </div>
 

@@ -4,6 +4,7 @@ import { useApp } from "../../context/AppContext";
 import { CATEGORIES, CAT_STYLE, CAT_ICON } from "../../data/categories";
 import ProductEditor from "../../components/ProductEditor";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
+import { productImages } from "../../utils/units";
 
 const PAGE_SIZE = 8;
 
@@ -163,8 +164,8 @@ export default function AdminProducts() {
                         <div className="flex justify-center">
                           <div className="relative w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center shrink-0" style={{ background: style.bg }}>
                             <Icon size={18} color={style.fg} strokeWidth={1.6} />
-                            {p.image && (
-                              <img src={p.image} alt="" className="absolute inset-0 w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                            {productImages(p)[0] && (
+                              <img src={productImages(p)[0]} alt="" className="absolute inset-0 w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
                             )}
                           </div>
                         </div>

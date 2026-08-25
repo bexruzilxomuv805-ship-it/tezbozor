@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ClipboardList, User, Phone, MapPin, Ban } from "lucide-react";
 import { useApp } from "../../context/AppContext";
-import { formatMoney, formatDate } from "../../utils/units";
+import { formatMoney, formatDate, productImages } from "../../utils/units";
 import { CAT_STYLE, CAT_ICON } from "../../data/categories";
 import { ORDER_STATUSES, STATUS_STYLE } from "../../data/orderStatus";
 
@@ -155,8 +155,8 @@ export default function AdminOrders() {
                           <div key={idx} className="flex items-center gap-2.5">
                             <div className="relative w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center shrink-0" style={{ background: style.bg }}>
                               <Icon size={16} color={style.fg} strokeWidth={1.6} />
-                              {product?.image && (
-                                <img src={product.image} alt="" className="absolute inset-0 w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                              {product && productImages(product)[0] && (
+                                <img src={productImages(product)[0]} alt="" className="absolute inset-0 w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
                               )}
                             </div>
                             <div className="flex-1 min-w-0">

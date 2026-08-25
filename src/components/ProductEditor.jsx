@@ -13,12 +13,41 @@ function Field({ label, children }) {
   );
 }
 
+// Downscales one uploaded file to a compressed JPEG data URI — kept as a plain module function
+// (not a component method) since it has no dependency on component state, just the file itself.
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX_DIM = 900;
+        let { width, height } = img;
+        if (width > MAX_DIM || height > MAX_DIM) {
+          const scale = MAX_DIM / Math.max(width, height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.82));
+      };
+      img.onerror = reject;
+      img.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function ProductEditor({ product, t, onSave, onClose }) {
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState(
     product
-      ? { ...product, name: { ...product.name } }
+      ? { ...product, name: { ...product.name }, images: product.images?.length ? [...product.images] : product.image ? [product.image] : [] }
       : {
           id: null,
           name: { uz: "", ru: "", en: "" },
@@ -27,7 +56,7 @@ export default function ProductEditor({ product, t, onSave, onClose }) {
           price: 0,
           stock: 0,
           brand: "",
-          image: "",
+          images: [],
         }
   );
 
@@ -72,39 +101,26 @@ export default function ProductEditor({ product, t, onSave, onClose }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedUzName]);
 
-  // Stored directly on the product record (in MongoDB) as a compressed data URI, rather than
+  // Stored directly on the product record (in MongoDB) as compressed data URIs, rather than
   // uploaded to a separate file server — that server's disk is wiped on every Render restart,
   // which is exactly what silently broke product photos before. Downscaling first keeps the
   // resulting document small and pages fast, since phone photos are far bigger than a product
-  // thumbnail needs.
-  const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // thumbnail needs. Any number of photos can be added — they append to the existing list
+  // rather than replacing it, so admins build up a gallery a few files at a time if they want.
+  const handleImagesChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = ""; // allow picking the same file again later (e.g. after removing it)
+    if (files.length === 0) return;
     setUploading(true);
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        const MAX_DIM = 900;
-        let { width, height } = img;
-        if (width > MAX_DIM || height > MAX_DIM) {
-          const scale = MAX_DIM / Math.max(width, height);
-          width = Math.round(width * scale);
-          height = Math.round(height * scale);
-        }
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
-        set("image", canvas.toDataURL("image/jpeg", 0.82));
-        setUploading(false);
-      };
-      img.onerror = () => setUploading(false);
-      img.src = reader.result;
-    };
-    reader.onerror = () => setUploading(false);
-    reader.readAsDataURL(file);
+    Promise.all(files.map(fileToDataUrl))
+      .then((dataUrls) => {
+        setForm((f) => ({ ...f, images: [...f.images, ...dataUrls] }));
+      })
+      .catch(() => {})
+      .finally(() => setUploading(false));
   };
+
+  const removeImage = (idx) => setForm((f) => ({ ...f, images: f.images.filter((_, i) => i !== idx) }));
 
   const canSave = form.name.uz.trim().length > 0 && form.price >= 0 && form.stock >= 0 && !uploading;
 
@@ -177,24 +193,37 @@ export default function ProductEditor({ product, t, onSave, onClose }) {
           </div>
 
           <Field label={t.admin.uploadImage}>
-            <div className="flex items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-2">
+              {form.images.map((src, idx) => (
+                <div key={idx} className="relative w-14 h-14 shrink-0">
+                  <img src={src} alt="" className="w-full h-full rounded-lg object-cover" style={{ border: "1px solid var(--gc-border)" }} />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(idx)}
+                    aria-label={t.admin.removeImage}
+                    title={t.admin.removeImage}
+                    className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full text-white"
+                    style={{ background: "var(--gc-tomato-dark)" }}
+                  >
+                    <X size={11} />
+                  </button>
+                </div>
+              ))}
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold shrink-0"
-                style={{ background: "var(--gc-surface)", border: "1px solid var(--gc-border)", color: "var(--gc-muted-dark)" }}
+                disabled={uploading}
+                className="flex w-14 h-14 shrink-0 flex-col items-center justify-center gap-1 rounded-lg text-[9px] font-bold"
+                style={{ background: "var(--gc-surface)", border: "1px dashed var(--gc-border)", color: "var(--gc-muted-dark)" }}
               >
-                <ImageUp size={14} /> {t.admin.chooseFile}
+                {uploading ? <Loader2 size={14} className="animate-spin" /> : <ImageUp size={14} />}
+                {uploading ? t.admin.uploading : t.admin.chooseFile}
               </button>
-              {uploading ? (
-                <span className="text-xs truncate" style={{ color: "var(--gc-muted-light)" }}>{t.admin.uploading}</span>
-              ) : form.image ? (
-                <img src={form.image} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" style={{ border: "1px solid var(--gc-border)" }} />
-              ) : (
-                <span className="text-xs truncate" style={{ color: "var(--gc-muted-light)" }}>{t.admin.noFileChosen}</span>
-              )}
             </div>
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+            <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImagesChange} className="hidden" />
+            {form.images.length === 0 && !uploading && (
+              <span className="text-xs mt-1 block" style={{ color: "var(--gc-muted-light)" }}>{t.admin.noFileChosen}</span>
+            )}
           </Field>
 
           <Field label={t.admin.stock}>
@@ -219,7 +248,7 @@ export default function ProductEditor({ product, t, onSave, onClose }) {
           </button>
           <button
             disabled={!canSave}
-            onClick={() => canSave && onSave(form)}
+            onClick={() => canSave && onSave({ ...form, image: form.images[0] || "" })}
             className="flex-1 py-2.5 rounded-full text-sm font-bold text-white"
             style={{ background: canSave ? "var(--gc-forest)" : "var(--gc-disabled)", cursor: canSave ? "pointer" : "not-allowed" }}
           >

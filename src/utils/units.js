@@ -23,6 +23,16 @@ export function cartReservedQty(cart, productId) {
     .reduce((s, it) => s + (it.factor || 1) * it.qty, 0);
 }
 
+// Products can carry several photos (see ProductEditor.jsx), stored as `images: string[]`.
+// Older/seed products only ever had a single `image` string — fall back to that so they keep
+// displaying without a data migration, always returning an array so every caller (card
+// thumbnail, detail-page gallery, receipt line...) can treat "no photos" and "one photo" the
+// same way as "many photos".
+export function productImages(product) {
+  if (Array.isArray(product?.images) && product.images.length > 0) return product.images;
+  return product?.image ? [product.image] : [];
+}
+
 export function optionLabel(option, lang, t) {
   const u = t.unit[option.unit];
   if (option.unit === "dona") return `${option.qty} ${u}`;

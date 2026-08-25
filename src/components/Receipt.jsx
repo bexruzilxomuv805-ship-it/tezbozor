@@ -1,6 +1,6 @@
 import { Printer } from "lucide-react";
 import { useApp } from "../context/AppContext";
-import { formatMoney, formatDate } from "../utils/units";
+import { formatMoney, formatDate, productImages } from "../utils/units";
 import { CAT_STYLE, CAT_ICON } from "../data/categories";
 import { STATUS_STYLE } from "../data/orderStatus";
 import { printReceipt } from "../utils/printReceipt";
@@ -56,8 +56,8 @@ export default function Receipt({ order }) {
                     style={{ background: cStyle.bg }}
                   >
                     <Icon size={16} color={cStyle.fg} strokeWidth={1.6} />
-                    {product?.image && (
-                      <img src={product.image} alt="" className="absolute inset-0 w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                    {product && productImages(product)[0] && (
+                      <img src={productImages(product)[0]} alt="" className="absolute inset-0 w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
                     )}
                   </div>
                   <span

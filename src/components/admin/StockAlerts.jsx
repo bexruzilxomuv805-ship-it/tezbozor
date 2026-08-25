@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { CAT_STYLE, CAT_ICON } from "../../data/categories";
+import { productImages } from "../../utils/units";
 
 export default function StockAlerts({ products, lang, t }) {
   const outOfStock = products.filter((p) => p.stock === 0).sort((a, b) => a.name[lang].localeCompare(b.name[lang]));
@@ -37,8 +38,8 @@ export default function StockAlerts({ products, lang, t }) {
               <div key={p.id} className="flex items-center gap-2.5 rounded-xl p-2.5" style={{ background: "var(--gc-cream-2)" }}>
                 <div className="relative w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center shrink-0" style={{ background: style.bg }}>
                   <Icon size={16} color={style.fg} strokeWidth={1.6} />
-                  {p.image && (
-                    <img src={p.image} alt="" className="absolute inset-0 w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                  {productImages(p)[0] && (
+                    <img src={productImages(p)[0]} alt="" className="absolute inset-0 w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
                   )}
                 </div>
                 <p className="flex-1 min-w-0 text-xs font-semibold truncate" style={{ color: "var(--gc-charcoal)" }}>

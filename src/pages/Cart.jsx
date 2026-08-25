@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, Trash2, LocateFixed, Loader2, Gift, MapPin, X, Tag } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { CAT_STYLE, CAT_ICON } from "../data/categories";
-import { cartReservedQty, formatMoney, resolveItemName } from "../utils/units";
+import { cartReservedQty, formatMoney, productImages, resolveItemName } from "../utils/units";
 import { POINT_VALUE, discountForPoints } from "../utils/loyalty";
 import { computePromoDiscount } from "../utils/promo";
 import Stepper from "../components/Stepper";
@@ -178,8 +178,8 @@ export default function Cart() {
             >
               <div className="relative w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center shrink-0" style={{ background: style.bg }}>
                 <Icon size={20} color={style.fg} strokeWidth={1.6} />
-                {product?.image && (
-                  <img src={product.image} alt="" className="absolute inset-0 w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                {product && productImages(product)[0] && (
+                  <img src={productImages(product)[0]} alt="" className="absolute inset-0 w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
                 )}
               </div>
               <div className="flex-1 min-w-0">
