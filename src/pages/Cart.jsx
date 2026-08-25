@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, Trash2, LocateFixed, Loader2, Gift, MapPin, X, Tag } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { CAT_STYLE, CAT_ICON } from "../data/categories";
-import { formatMoney, resolveItemName } from "../utils/units";
+import { cartReservedQty, formatMoney, resolveItemName } from "../utils/units";
 import { POINT_VALUE, discountForPoints } from "../utils/loyalty";
 import { computePromoDiscount } from "../utils/promo";
 import Stepper from "../components/Stepper";
@@ -31,6 +31,17 @@ export default function Cart() {
   const [selectedSavedId, setSelectedSavedId] = useState(null);
   const [promoInput, setPromoInput] = useState("");
   const adjustedRef = useRef(new Set());
+
+  // Stock is one shared pool per product across all its unit-option lines (see cartReservedQty
+  // in units.js) — the cap for THIS line is the stock left after every OTHER line for the same
+  // product, so setting this line's qty up to that cap can never push the product's total over
+  // its stock, regardless of how many different options (1kg/500g/250g...) are in the cart.
+  const maxQtyForLine = useCallback((item, product) => {
+    if (!product) return item.qty;
+    const factor = item.factor || 1;
+    const reservedByOtherLines = cartReservedQty(cart, item.productId) - factor * item.qty;
+    return Math.floor((product.stock - reservedByOtherLines) / factor);
+  }, [cart]);
 
   const selectSavedAddress = (a) => {
     setFullName(a.fullName);
@@ -64,7 +75,7 @@ export default function Cart() {
   useEffect(() => {
     for (const item of cart) {
       const product = products.find((p) => p.id === item.productId);
-      const maxQty = product ? Math.floor(product.stock / (item.factor || 1)) : 0;
+      const maxQty = product ? maxQtyForLine(item, product) : 0;
       if (item.qty <= maxQty) continue;
       if (adjustedRef.current.has(item.key)) continue;
       adjustedRef.current.add(item.key);
@@ -77,7 +88,7 @@ export default function Cart() {
         showToast(t.cartAdjustedReduced(itemName, maxQty), "info");
       }
     }
-  }, [cart, products, lang, removeFromCart, updateCartQty, showToast, t]);
+  }, [cart, products, lang, removeFromCart, updateCartQty, showToast, t, maxQtyForLine]);
 
   const detectLocation = () => {
     if (!navigator.geolocation) {
@@ -158,7 +169,7 @@ export default function Cart() {
           const style = CAT_STYLE[item.category] || CAT_STYLE.sabzavot;
           const Icon = CAT_ICON[item.category] || CAT_ICON.sabzavot;
           const product = products.find((p) => p.id === item.productId);
-          const maxQty = product ? Math.floor(product.stock / (item.factor || 1)) : item.qty;
+          const maxQty = product ? maxQtyForLine(item, product) : item.qty;
           return (
             <div
               key={item.key}

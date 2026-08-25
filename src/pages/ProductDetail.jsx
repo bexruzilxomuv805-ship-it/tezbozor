@@ -3,14 +3,14 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Check, Heart, ShoppingCart, Star } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { CATEGORIES, CAT_ICON, CAT_STYLE } from "../data/categories";
-import { formatMoney, optionFactor, optionLabel, unitOptions } from "../utils/units";
+import { cartReservedQty, formatMoney, optionFactor, optionLabel, unitOptions } from "../utils/units";
 import Stepper from "../components/Stepper";
 import ReviewsModal from "../components/ReviewsModal";
 
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { lang, t, products, addToCart, currentUser, showToast, wishlist, toggleWishlist, reviews, requestStockNotification } = useApp();
+  const { lang, t, products, cart, addToCart, currentUser, showToast, wishlist, toggleWishlist, reviews, requestStockNotification } = useApp();
   const product = products.find((p) => p.id === id);
 
   const options = useMemo(() => (product ? unitOptions(product.baseUnit) : []), [product]);
@@ -33,7 +33,11 @@ export default function ProductDetail() {
   const factor = product && option ? optionFactor(product, option) : 1;
   const unitPrice = product ? product.price * factor : 0;
   const lineTotal = unitPrice * qty;
-  const maxQty = product ? Math.floor(product.stock / factor) : 0;
+  // Stock is shared across all unit options of a product — see cartReservedQty in units.js
+  // and the matching fix in ProductCard.jsx.
+  const reservedInCart = useMemo(() => (product ? cartReservedQty(cart, product.id) : 0), [cart, product]);
+  const availableStock = product ? Math.max(0, product.stock - reservedInCart) : 0;
+  const maxQty = product ? Math.floor(availableStock / factor) : 0;
   const disabled = !product || product.stock <= 0 || maxQty <= 0;
   const outOfStock = !product || product.stock <= 0;
   const notifyRequested = !!currentUser && !!product && (product.notifyRequests || []).includes(currentUser.email);

@@ -12,6 +12,17 @@ export function optionFactor(product, option) {
   return option.qty;
 }
 
+// Stock is one shared pool per product, but each unit option (1kg, 500g, 250g...) is a
+// separate cart line (see ProductCard.jsx's `key`). Without this, adding the full stock via
+// one option (e.g. all 36kg as "1kg" lines) left every other option's line still computing its
+// own limit against the untouched product.stock, letting the customer add far more than exists.
+// Sum in base units (factor * qty) across every line for this product, regardless of option.
+export function cartReservedQty(cart, productId) {
+  return cart
+    .filter((it) => it.productId === productId)
+    .reduce((s, it) => s + (it.factor || 1) * it.qty, 0);
+}
+
 export function optionLabel(option, lang, t) {
   const u = t.unit[option.unit];
   if (option.unit === "dona") return `${option.qty} ${u}`;

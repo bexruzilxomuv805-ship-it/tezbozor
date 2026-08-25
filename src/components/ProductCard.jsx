@@ -3,12 +3,12 @@ import { Link } from "react-router-dom";
 import { ShoppingCart, Check, Heart, Star } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { CAT_STYLE, CAT_ICON } from "../data/categories";
-import { unitOptions, optionFactor, optionLabel, formatMoney } from "../utils/units";
+import { unitOptions, optionFactor, optionLabel, formatMoney, cartReservedQty } from "../utils/units";
 import Stepper from "./Stepper";
 import ReviewsModal from "./ReviewsModal";
 
 export default function ProductCard({ product }) {
-  const { lang, t, addToCart, currentUser, showToast, wishlist, toggleWishlist, reviews, requestStockNotification } = useApp();
+  const { lang, t, cart, addToCart, currentUser, showToast, wishlist, toggleWishlist, reviews, requestStockNotification } = useApp();
   const options = useMemo(() => unitOptions(product.baseUnit), [product.baseUnit]);
   const [optionIdx, setOptionIdx] = useState(0);
   const [qty, setQty] = useState(1);
@@ -26,7 +26,12 @@ export default function ProductCard({ product }) {
   const factor = optionFactor(product, option);
   const unitPrice = product.price * factor;
   const lineTotal = unitPrice * qty;
-  const maxQty = Math.floor(product.stock / factor);
+  // Stock is shared across all unit options of a product (see cartReservedQty) — otherwise
+  // adding e.g. all 36kg via "1kg" lines still let 500g/250g lines each compute their own
+  // limit against the untouched product.stock, letting far more than exists be added.
+  const reservedInCart = useMemo(() => cartReservedQty(cart, product.id), [cart, product.id]);
+  const availableStock = Math.max(0, product.stock - reservedInCart);
+  const maxQty = Math.floor(availableStock / factor);
   const disabled = product.stock <= 0 || maxQty <= 0;
   const outOfStock = product.stock <= 0;
   // Admins manage the catalog, they don't shop it — buying isn't part of their role, so the
