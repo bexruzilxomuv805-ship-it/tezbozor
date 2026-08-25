@@ -28,11 +28,19 @@ export default function ProductCard({ product }) {
   const maxQty = Math.floor(product.stock / factor);
   const disabled = product.stock <= 0 || maxQty <= 0;
   const outOfStock = product.stock <= 0;
+  // Admins manage the catalog, they don't shop it — buying isn't part of their role, so the
+  // purchase controls below are disabled for them rather than removed, matching the pattern
+  // that only the ability to act (not the page/card itself) is gated per role in this app.
+  const isAdmin = currentUser?.role === "admin";
   const notifyRequested = !!currentUser && (product.notifyRequests || []).includes(currentUser.email);
 
   const handleAdd = () => {
     if (!currentUser) {
       showToast(t.guestCartBlocked, "error");
+      return;
+    }
+    if (isAdmin) {
+      showToast(t.adminCannotBuy, "error");
       return;
     }
     if (disabled) return;
@@ -59,7 +67,7 @@ export default function ProductCard({ product }) {
       showToast(t.notifyLoginRequired, "error");
       return;
     }
-    if (notifyRequested) return;
+    if (isAdmin || notifyRequested) return;
     requestStockNotification(product.id);
     showToast(t.notifyRequestSaved, "info");
   };
@@ -176,19 +184,19 @@ export default function ProductCard({ product }) {
           <span className="text-[15px] sm:text-[17px] font-bold leading-none wrap-break-word" style={{ color: "var(--gc-charcoal)" }}>
             {formatMoney(unitPrice, lang, t)}
           </span>
-          <Stepper value={qty} onChange={setQty} min={1} max={Math.max(1, maxQty)} disabled={disabled} />
+          <Stepper value={qty} onChange={setQty} min={1} max={Math.max(1, maxQty)} disabled={disabled || isAdmin} />
         </div>
 
         {outOfStock ? (
           <button
             type="button"
-            disabled={notifyRequested}
+            disabled={notifyRequested || isAdmin}
             onClick={handleNotifyRequest}
             className="mt-auto w-full overflow-hidden rounded-full px-2 py-2 text-[10.5px] font-extrabold tracking-[-0.01em] transition active:scale-[0.98]"
             style={{
-              background: notifyRequested ? "var(--gc-cream-2)" : style.accent,
-              color: notifyRequested ? "var(--gc-muted-dark)" : "#fff",
-              cursor: notifyRequested ? "default" : "pointer",
+              background: notifyRequested || isAdmin ? "var(--gc-cream-2)" : style.accent,
+              color: notifyRequested || isAdmin ? "var(--gc-muted-dark)" : "#fff",
+              cursor: notifyRequested || isAdmin ? "default" : "pointer",
               whiteSpace: "normal",
               lineHeight: 1.2,
             }}
@@ -198,21 +206,23 @@ export default function ProductCard({ product }) {
         ) : (
           <button
             type="button"
-            disabled={disabled}
+            disabled={disabled || isAdmin}
             onClick={handleAdd}
             className="mt-auto w-full overflow-hidden rounded-full px-2 py-2 text-[10.5px] font-extrabold tracking-[-0.01em] transition active:scale-[0.98]"
             style={{
-              background: disabled ? "var(--gc-border)" : flash ? "var(--gc-forest)" : style.accent,
-              color: disabled ? "var(--gc-muted-light)" : "#fff",
-              boxShadow: disabled ? "none" : "0 8px 16px rgba(27,77,62,0.18)",
-              cursor: disabled ? "not-allowed" : "pointer",
+              background: disabled || isAdmin ? "var(--gc-border)" : flash ? "var(--gc-forest)" : style.accent,
+              color: disabled || isAdmin ? "var(--gc-muted-light)" : "#fff",
+              boxShadow: disabled || isAdmin ? "none" : "0 8px 16px rgba(27,77,62,0.18)",
+              cursor: disabled || isAdmin ? "not-allowed" : "pointer",
               whiteSpace: "normal",
               lineHeight: 1.2,
             }}
           >
             <span className="flex items-center justify-center gap-2 leading-none text-center">
-              {flash ? <Check size={15} /> : <ShoppingCart size={14} />}
-              {flash ? (
+              {isAdmin ? null : flash ? <Check size={15} /> : <ShoppingCart size={14} />}
+              {isAdmin ? (
+                t.adminCannotBuy
+              ) : flash ? (
                 t.added
               ) : (
                 <>
