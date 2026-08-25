@@ -131,7 +131,7 @@ export default function ProductCard({ product }) {
             style={
               product.stock <= 10
                 ? { background: "var(--cat-sut-bg)", color: "var(--gc-mango-dark)" }
-                : { background: "rgba(255,255,255,0.9)", color: "var(--gc-muted-dark)" }
+                : { background: "var(--gc-forest)", color: "#fff" }
             }
           >
             {t.inStock(product.stock)} {t.unit[product.baseUnit]}
