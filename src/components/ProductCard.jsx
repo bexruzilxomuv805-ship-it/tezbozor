@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ShoppingCart, Check, Heart, Star } from "lucide-react";
+import { ShoppingCart, Check, Heart, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { CAT_STYLE, CAT_ICON } from "../data/categories";
 import { unitOptions, optionFactor, optionLabel, formatMoney, cartReservedQty, productImages } from "../utils/units";
@@ -15,6 +15,7 @@ export default function ProductCard({ product }) {
   const [flash, setFlash] = useState(false);
   const [heartAnim, setHeartAnim] = useState(false);
   const [reviewsOpen, setReviewsOpen] = useState(false);
+  const [imgIdx, setImgIdx] = useState(0);
   const timerRef = useRef(null);
   const isWishlisted = wishlist.includes(product.id);
   const productReviews = useMemo(() => reviews.filter((r) => r.productId === product.id), [reviews, product.id]);
@@ -22,7 +23,22 @@ export default function ProductCard({ product }) {
 
   const style = CAT_STYLE[product.category] || CAT_STYLE.sabzavot;
   const Icon = CAT_ICON[product.category] || CAT_ICON.sabzavot;
-  const thumbnail = productImages(product)[0];
+  const images = useMemo(() => productImages(product), [product]);
+  const thumbnail = images[imgIdx] || images[0];
+
+  // Cycle the card's own photo without leaving the shop grid — same preventDefault +
+  // stopPropagation as the wishlist heart button, since these buttons sit inside the Link
+  // that opens the product page (see handleToggleWishlist for why both calls are needed).
+  const showPrevImage = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setImgIdx((i) => (i - 1 + images.length) % images.length);
+  };
+  const showNextImage = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setImgIdx((i) => (i + 1) % images.length);
+  };
   const option = options[optionIdx];
   const factor = optionFactor(product, option);
   const unitPrice = product.price * factor;
@@ -157,6 +173,37 @@ export default function ProductCard({ product }) {
           >
             {t.outOfStock}
           </span>
+        )}
+        {images.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={showPrevImage}
+              aria-label={t.previousImage}
+              className="absolute left-1 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-full shadow-sm transition active:scale-90"
+              style={{ background: "rgba(255,255,255,0.85)" }}
+            >
+              <ChevronLeft size={15} color="var(--gc-charcoal)" />
+            </button>
+            <button
+              type="button"
+              onClick={showNextImage}
+              aria-label={t.nextImage}
+              className="absolute right-1 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-full shadow-sm transition active:scale-90"
+              style={{ background: "rgba(255,255,255,0.85)" }}
+            >
+              <ChevronRight size={15} color="var(--gc-charcoal)" />
+            </button>
+            <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-1">
+              {images.map((_, i) => (
+                <span
+                  key={i}
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ background: i === imgIdx ? "#fff" : "rgba(255,255,255,0.5)" }}
+                />
+              ))}
+            </div>
+          </>
         )}
       </div>
       </Link>
