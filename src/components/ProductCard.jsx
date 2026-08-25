@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { ShoppingCart, Check, Heart, Star } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { CAT_STYLE, CAT_ICON } from "../data/categories";
@@ -99,6 +100,7 @@ export default function ProductCard({ product }) {
         boxShadow: "0 8px 18px rgba(27,77,62,0.04)",
       }}
     >
+      <Link to={`/mahsulot/${product.id}`} className="contents">
       <div className="relative aspect-square flex items-center justify-center overflow-hidden" style={{ background: style.bg }}>
         <Icon size={42} color={style.fg} strokeWidth={1.6} />
         {product.image && (
@@ -146,13 +148,16 @@ export default function ProductCard({ product }) {
           </span>
         )}
       </div>
+      </Link>
 
       <div className="flex flex-1 flex-col gap-3 p-3.5">
         <div className="min-h-10">
-          <p className="font-display text-sm sm:text-[15px] font-semibold leading-tight wrap-break-word" style={{ color: "var(--gc-charcoal)" }}>
-            {product.name[lang]}
-          </p>
-          <p className="mt-1 text-xs" style={{ color: "var(--gc-muted)" }}>{product.brand}</p>
+          <Link to={`/mahsulot/${product.id}`} className="contents">
+            <p className="font-display text-sm sm:text-[15px] font-semibold leading-tight wrap-break-word" style={{ color: "var(--gc-charcoal)" }}>
+              {product.name[lang]}
+            </p>
+            <p className="mt-1 text-xs" style={{ color: "var(--gc-muted)" }}>{product.brand}</p>
+          </Link>
           <button
             type="button"
             onClick={() => setReviewsOpen(true)}

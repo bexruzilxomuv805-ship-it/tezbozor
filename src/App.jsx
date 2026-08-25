@@ -7,6 +7,7 @@ import SupportWidget from "./components/SupportWidget";
 import InstallAppBanner from "./components/InstallAppBanner";
 import Home from "./pages/Home";
 import Shop from "./pages/Shop";
+import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import Wishlist from "./pages/Wishlist";
 import Profile from "./pages/Profile";
@@ -33,6 +34,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/dokon" element={<Shop />} />
+            <Route path="/mahsulot/:id" element={<ProductDetail />} />
             <Route path="/savat" element={<Cart />} />
             <Route path="/sevimlilar" element={<Wishlist />} />
             <Route path="/profil" element={<Profile />} />
