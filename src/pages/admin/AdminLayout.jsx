@@ -26,7 +26,7 @@ export default function AdminLayout() {
             <ArrowLeft size={12} /> {t.admin.backToSite}
           </Link>
         </div>
-        <div className="flex gap-2 overflow-x-auto rounded-full p-1 min-w-0 w-full sm:w-auto" style={{ background: "var(--gc-cream-2)" }}>
+        <div className="flex flex-wrap gap-2 rounded-2xl p-1.5 min-w-0 w-full sm:w-auto" style={{ background: "var(--gc-cream-2)" }}>
           <NavLink to="/admin" end style={({ isActive }) => tabStyle(isActive)} className="px-3 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 shrink-0">
             <LayoutGrid size={13} /> {t.admin.dashboard}
           </NavLink>
