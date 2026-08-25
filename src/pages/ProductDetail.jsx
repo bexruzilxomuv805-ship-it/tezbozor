@@ -123,7 +123,7 @@ export default function ProductDetail() {
             <img
               src={product.image}
               alt={product.name[lang]}
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-contain"
               onError={(e) => { e.currentTarget.style.display = "none"; }}
             />
           )}
