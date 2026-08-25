@@ -125,10 +125,14 @@ export default function ProductCard({ product }) {
             className={heartAnim ? "animate-heart-pop" : ""}
           />
         </button>
-        {product.stock > 0 && product.stock <= 10 && (
+        {product.stock > 0 && (
           <span
             className="absolute left-2.5 top-2.5 rounded-full px-2 py-0.5 text-[10px] font-bold"
-            style={{ background: "var(--cat-sut-bg)", color: "var(--gc-mango-dark)" }}
+            style={
+              product.stock <= 10
+                ? { background: "var(--cat-sut-bg)", color: "var(--gc-mango-dark)" }
+                : { background: "rgba(255,255,255,0.9)", color: "var(--gc-muted-dark)" }
+            }
           >
             {t.inStock(product.stock)} {t.unit[product.baseUnit]}
           </span>
