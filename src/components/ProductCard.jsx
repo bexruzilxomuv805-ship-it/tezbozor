@@ -79,6 +79,11 @@ export default function ProductCard({ product }) {
   };
 
   const handleToggleWishlist = (e) => {
+    // stopPropagation alone doesn't stop the wrapping Link's own navigation — that only happens
+    // via the Link's onClick handler calling preventDefault(), which never runs if the event's
+    // propagation to it is stopped first. Call both: preventDefault cancels the navigation,
+    // stopPropagation keeps this click from doing anything else the wrapper might handle.
+    e.preventDefault();
     e.stopPropagation();
     toggleWishlist(product.id);
     setHeartAnim(true);
